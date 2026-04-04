@@ -1,19 +1,18 @@
 import { useQueries } from '@tanstack/react-query';
 import { fetchObjectById } from '../api/galleryApi';
-import { transformArtwork, type ArtworkCard } from '@/lib/models/artwork';
+import { metObjectQueryKey } from '@/lib/api/metObjectQueryKey';
+import {
+  transformArtwork,
+  type ArtworkCard,
+  type MetObjectResponse,
+} from '@/lib/models/artwork';
 
 export const useObjectsBatch = (ids: number[] = []) => {
   return useQueries({
     queries: ids.map((id) => ({
-      queryKey: ['object', id] as const,
-      queryFn: async () => {
-        try {
-          const response = await fetchObjectById(id);
-          return transformArtwork(response);
-        } catch {
-          return null;
-        }
-      },
+      queryKey: metObjectQueryKey(id),
+      queryFn: () => fetchObjectById(id),
+      select: (raw: MetObjectResponse) => transformArtwork(raw),
       staleTime: Number.POSITIVE_INFINITY,
       gcTime: 1000 * 60 * 30,
       retry: 1,

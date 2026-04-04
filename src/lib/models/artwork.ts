@@ -126,6 +126,8 @@ export interface ArtworkDetail extends ArtworkCard {
   primaryImageLarge: string | null;
   objectBeginDate: number | null;
   objectEndDate: number | null;
+  /** Public object page on metmuseum.org when provided. */
+  objectUrl: string | null;
 }
 
 export function parseDateFromObjectDateString(
@@ -240,5 +242,6 @@ export const toArtworkDetail = (
       !Number.isNaN(response.objectEndDate)
         ? response.objectEndDate
         : null,
+    objectUrl: response.objectURL?.trim() || null,
   };
 };

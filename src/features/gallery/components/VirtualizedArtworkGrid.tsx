@@ -10,7 +10,8 @@ import { useQueries } from '@tanstack/react-query';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { Card, CardSkeleton } from '@/components/ui';
 import { fetchObjectById } from '../api/galleryApi';
-import { transformArtwork } from '@/lib/models/artwork';
+import { metObjectQueryKey } from '@/lib/api/metObjectQueryKey';
+import { transformArtwork, type MetObjectResponse } from '@/lib/models/artwork';
 import styles from './VirtualizedArtworkGrid.module.css';
 
 const MIN_CARD_WIDTH = 260;
@@ -101,11 +102,9 @@ const VirtualizedArtworkGrid = ({
 
   const queries = useQueries({
     queries: sliceIds.map((id) => ({
-      queryKey: ['object', id] as const,
-      queryFn: async () => {
-        const raw = await fetchObjectById(id);
-        return transformArtwork(raw);
-      },
+      queryKey: metObjectQueryKey(id),
+      queryFn: () => fetchObjectById(id),
+      select: (raw: MetObjectResponse) => transformArtwork(raw),
       staleTime: Number.POSITIVE_INFINITY,
       gcTime: 1000 * 60 * 30,
       retry: 1,
