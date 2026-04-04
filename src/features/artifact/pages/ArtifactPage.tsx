@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { useDepartments } from '@/features/gallery/hooks/useDepartments';
 import RelatedWorksGrid from '../components/RelatedWorksGrid';
@@ -10,6 +10,45 @@ import {
 } from '../lib/relatedWorks';
 import styles from './ArtifactPage.module.css';
 
+type HeroImageProps = {
+  small: string | null;
+  large: string | null;
+  styles: Record<string, string>;
+};
+
+const HeroImage = ({ small, large, styles }: HeroImageProps) => {
+  const [hiResLoaded, setHiResLoaded] = useState(false);
+  const onLoad = useCallback(() => setHiResLoaded(true), []);
+
+  const hasAny = large || small;
+  if (!hasAny) {
+    return (
+      <div className={styles.hero}>
+        <div className={styles.heroPlaceholder} role="img" aria-label="No image available">
+          No image available
+        </div>
+      </div>
+    );
+  }
+
+  const showSmallFirst = !!large && !!small && !hiResLoaded;
+
+  return (
+    <div className={styles.hero}>
+      {showSmallFirst && (
+        <img src={small} alt="" className={styles.heroImg} />
+      )}
+      <img
+        src={(large || small)!}
+        alt=""
+        className={styles.heroImg}
+        onLoad={large ? onLoad : undefined}
+        style={showSmallFirst ? { position: 'absolute', opacity: 0, pointerEvents: 'none' } : undefined}
+      />
+    </div>
+  );
+};
+
 const ArtifactPage = () => {
   const { id: idParam } = useParams<{ id: string }>();
   const location = useLocation();
@@ -19,6 +58,10 @@ const ArtifactPage = () => {
       : '/';
   const objectId = idParam != null ? Number.parseInt(idParam, 10) : Number.NaN;
   const validId = Number.isFinite(objectId) && objectId > 0;
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [objectId]);
 
   const {
     data: detail,
@@ -88,23 +131,11 @@ const ArtifactPage = () => {
 
       {detail && (
         <article className={styles.article}>
-          <div className={styles.hero}>
-            {detail.primaryImageLarge || detail.imageUrl ? (
-              <img
-                src={(detail.primaryImageLarge || detail.imageUrl) ?? ''}
-                alt=""
-                className={styles.heroImg}
-              />
-            ) : (
-              <div
-                className={styles.heroPlaceholder}
-                role="img"
-                aria-label="No image available"
-              >
-                No image available
-              </div>
-            )}
-          </div>
+          <HeroImage
+            small={detail.imageUrl}
+            large={detail.primaryImageLarge}
+            styles={styles}
+          />
 
           <div className={styles.body}>
             <header className={styles.header}>

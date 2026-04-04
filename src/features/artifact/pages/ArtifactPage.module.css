@@ -52,6 +52,7 @@
 }
 
 .hero {
+  position: relative;
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--surface);
