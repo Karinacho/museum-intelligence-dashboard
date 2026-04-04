@@ -45,10 +45,11 @@ describe('Assessment — data transformation', () => {
       expect(isHighlightsMode({ keyword: 'vase' })).toBe(false);
     });
 
-    it('builds Met query string with highlights or filters', () => {
-      expect(buildMetSearchQueryString({})).toContain('isHighlight=true');
-      expect(buildMetSearchQueryString({ departmentId: 10 })).not.toContain(
-        'isHighlight'
+    it('builds Met query string with filters', () => {
+      expect(buildMetSearchQueryString({})).not.toContain('isHighlight');
+      expect(buildMetSearchQueryString({})).toContain('hasImages=true');
+      expect(buildMetSearchQueryString({ departmentId: 10 })).toContain(
+        'departmentId=10'
       );
       expect(buildMetSearchQueryString({ keyword: 'limestone' })).toContain(
         'q=limestone'

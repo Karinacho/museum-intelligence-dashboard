@@ -54,10 +54,6 @@ export function buildMetSearchQueryString(state: UrlGalleryFilters): string {
   params.set('q', state.keyword?.trim() ? state.keyword.trim() : '*');
   params.set('hasImages', 'true');
 
-  if (isHighlightsMode(state)) {
-    params.set('isHighlight', 'true');
-  }
-
   if (state.departmentId !== undefined) {
     params.set('departmentId', String(state.departmentId));
   }

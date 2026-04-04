@@ -1,7 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchSearchObjectIds } from '../api/galleryApi';
 
-export const useSearchObjectIds = (metSearchQueryString: string) => {
+export const useSearchObjectIds = (
+  metSearchQueryString: string,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: ['gallery-search', metSearchQueryString],
     queryFn: () => fetchSearchObjectIds(metSearchQueryString),
@@ -10,5 +13,6 @@ export const useSearchObjectIds = (metSearchQueryString: string) => {
     refetchOnWindowFocus: false,
     retry: 2,
     placeholderData: (previousData) => previousData,
+    enabled: options?.enabled ?? true,
   });
 };
