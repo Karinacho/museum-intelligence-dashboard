@@ -1,11 +1,13 @@
+import {AppProviders} from "@/app/providers/providers.tsx";
+import {RouterProvider} from "react-router-dom";
+import {router} from "@/app/providers/router.tsx";
 
-function App() {
-
+const App = () => {
   return (
-    <div>
-
-    </div>
-  )
+        <AppProviders>
+          <RouterProvider router={router} />
+        </AppProviders>
+      )
 }
 
 export default App
