@@ -1,0 +1,42 @@
+.skeleton {
+    pointer-events: none;
+}
+
+.skeleton:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.skeletonImage,
+.skeletonText,
+.skeletonTag {
+    background: linear-gradient(
+            90deg,
+            var(--line) 25%,
+            var(--bg) 50%,
+            var(--line) 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s ease-in-out infinite;
+}
+
+.skeletonName {
+    height: 1.5rem;
+    width: 70%;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.skeletonTag {
+    height: 1.5rem;
+    width: 4rem;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}

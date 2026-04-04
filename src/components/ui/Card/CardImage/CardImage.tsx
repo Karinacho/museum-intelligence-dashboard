@@ -1,22 +1,30 @@
 import styles from './CardImage.module.css';
 
 interface CardImageProps {
-    imageSrc?: string;
-    name?: string
+  imageSrc?: string | null;
+  name?: string | null;
 }
 
-const CardImage = ({imageSrc, name}: CardImageProps) => {
-    return (
-        <div className={styles.imageWrapper}>
+const CardImage = ({ imageSrc, name }: CardImageProps) => {
+    const image = (
+        <img
+            loading='lazy'
+            src={imageSrc!}
+            alt={name ?? 'Artwork not available'}
+            className={styles.image}
+        />
+    );
 
-            {imageSrc ? (
-                <img src={imageSrc} alt={name} className={styles.image} />
-            ) : (
-                <div className={styles.noImage}>No Image</div>
-            )}
-
-        </div>
+    const fallback = (
+        <div className={styles.noImage} aria-hidden="true">No Image Available</div>
     )
-}
+
+
+  return (
+    <div className={styles.imageWrapper}>
+      {imageSrc ? image : fallback}
+    </div>
+  );
+};
 
 export default CardImage;

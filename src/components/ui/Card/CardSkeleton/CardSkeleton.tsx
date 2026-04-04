@@ -1,4 +1,4 @@
-import styles from './Card.module.css';
+import styles from './CardSkeleton.module.css';
 
 const CardSkeleton = () => {
   return (

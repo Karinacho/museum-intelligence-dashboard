@@ -1,0 +1,26 @@
+.content {
+    padding: 1rem;
+}
+
+.name {
+    font-family: var(--font-serif), sans-serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag {
+    font-size: 0.75rem;
+    color: var(--accent);
+    background: var(--bg);
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+    font-weight: 500;
+}

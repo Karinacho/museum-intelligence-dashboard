@@ -1,4 +1,4 @@
-import { CardSkeleton } from '@/components/ui/Card';
+import { Card, CardSkeleton } from '@/components/ui/Card';
 import Grid from '@/components/layout/Grid/Grid';
 import { useGallery } from '../hooks/useGallery';
 
@@ -42,14 +42,15 @@ const GalleryPage = () => {
 
           if (state.data) {
             return (
-              <div key={state.data.id}>
-                <h3>{state.data.title}</h3>
-                <p>{state.data.artist}</p>
-                <p>{state.data.date}</p>
-                {state.data.imageUrl && (
-                  <img src={state.data.imageUrl} alt={state.data.title} />
-                )}
-              </div>
+              <Card imageSrc={state?.data?.imageUrl} name={state.data.title} />
+              // <div key={state.data.id}>
+              //   <h3>{state.data.title}</h3>
+              //   <p>{state.data.artist}</p>
+              //   <p>{state.data.date}</p>
+              //   {state.data.imageUrl && (
+              //     <img src={state.data.imageUrl} alt={state.data.title} />
+              //   )}
+              // </div>
             );
           }
 

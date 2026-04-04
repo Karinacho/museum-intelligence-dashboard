@@ -1,3 +1,3 @@
-export { default as Card } from './Card';
-export { default as CardSkeleton } from './CardSkeleton';
-export type { CardProps } from './Card';
+export { default as Card } from './Card/Card.tsx';
+export { default as CardSkeleton } from './CardSkeleton/CardSkeleton.tsx';
+export type { CardProps } from './Card/Card.tsx';
