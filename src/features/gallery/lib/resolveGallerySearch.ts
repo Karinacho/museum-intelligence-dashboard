@@ -49,10 +49,26 @@ export function isHighlightsMode(state: UrlGalleryFilters): boolean {
   );
 }
 
+/**
+ * Department selected with no keyword or date range.
+ * Use /objects?departmentIds=X for the complete list (search index is limited).
+ */
+export function isDepartmentOnlyMode(state: UrlGalleryFilters): boolean {
+  return (
+    state.departmentId !== undefined &&
+    state.dateBegin === undefined &&
+    state.dateEnd === undefined &&
+    (state.keyword === undefined || state.keyword.trim() === '')
+  );
+}
+
 export function buildMetSearchQueryString(state: UrlGalleryFilters): string {
   const params = new URLSearchParams();
   params.set('q', state.keyword?.trim() ? state.keyword.trim() : '*');
   params.set('hasImages', 'true');
+  if (isHighlightsMode(state)) {
+    params.set('isHighlight', 'true');
+  }
 
   if (state.departmentId !== undefined) {
     params.set('departmentId', String(state.departmentId));

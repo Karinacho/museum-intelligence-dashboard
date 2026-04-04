@@ -1,19 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchSearchObjectIds } from '../api/galleryApi';
+import { fetchObjectIdsByDepartment } from '../api/galleryApi';
 
-export const useSearchObjectIds = (
-  metSearchQueryString: string,
+export const useDepartmentObjectIds = (
+  departmentId: number | undefined,
   options?: { enabled?: boolean }
 ) => {
   return useQuery({
-    queryKey: ['gallery-search', metSearchQueryString],
+    queryKey: ['department-objects', departmentId],
     queryFn: ({ signal }: { signal: AbortSignal }) =>
-      fetchSearchObjectIds(metSearchQueryString, signal),
+      fetchObjectIdsByDepartment(departmentId!, signal),
+    enabled: (options?.enabled ?? true) && departmentId !== undefined,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
     retry: 2,
     placeholderData: (previousData) => previousData,
-    enabled: options?.enabled ?? true,
   });
 };

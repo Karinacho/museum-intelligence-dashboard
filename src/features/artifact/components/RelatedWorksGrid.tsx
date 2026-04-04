@@ -1,4 +1,5 @@
 import { useQueries } from '@tanstack/react-query';
+import { useLocation } from 'react-router-dom';
 import { Card, CardSkeleton } from '@/components/ui';
 import { fetchObjectById } from '@/features/gallery/api/galleryApi';
 import { metObjectQueryKey } from '@/lib/api/metObjectQueryKey';
@@ -10,6 +11,8 @@ type RelatedWorksGridProps = {
 };
 
 const RelatedWorksGrid = ({ ids }: RelatedWorksGridProps) => {
+  const location = useLocation();
+  const artifactLocation = `${location.pathname}${location.search}`;
   const queries = useQueries({
     queries: ids.map((id) => ({
       queryKey: metObjectQueryKey(id),
@@ -49,6 +52,7 @@ const RelatedWorksGrid = ({ ids }: RelatedWorksGridProps) => {
           <div key={id} className={styles.cell}>
             <Card
               to={`/artifact/${a.id}`}
+              state={{ from: artifactLocation }}
               name={a.title}
               artist={a.artist}
               objectDate={a.dateLine}

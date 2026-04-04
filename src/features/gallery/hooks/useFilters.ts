@@ -4,6 +4,7 @@ import {
   type UrlGalleryFilters,
   parseUrlGalleryFilters,
   isHighlightsMode,
+  isDepartmentOnlyMode,
   buildMetSearchQueryString,
 } from '../lib/resolveGallerySearch';
 
@@ -29,6 +30,7 @@ export const useFilters = () => {
   );
 
   const isHighlights = useMemo(() => isHighlightsMode(urlState), [urlState]);
+  const isDeptOnly = useMemo(() => isDepartmentOnlyMode(urlState), [urlState]);
 
   const metSearchQueryString = useMemo(
     () => buildMetSearchQueryString(urlState),
@@ -78,6 +80,7 @@ export const useFilters = () => {
     urlState,
     currentPage,
     isHighlights,
+    isDeptOnly,
     metSearchQueryString,
     setFilters,
     setPage,

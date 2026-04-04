@@ -12,6 +12,7 @@ export interface CardContainerProps {
   onClick?: () => void;
   /** When set, the whole card navigates as a link (preferred over onClick). */
   to?: string;
+  state?: unknown;
 }
 
 const CardContainer = ({
@@ -22,6 +23,7 @@ const CardContainer = ({
   tags,
   onClick,
   to,
+  state,
 }: CardContainerProps) => {
   const article = (
     <article className={styles.card} onClick={onClick}>
@@ -37,7 +39,7 @@ const CardContainer = ({
 
   if (to) {
     return (
-      <Link to={to} className={styles.cardLink}>
+      <Link to={to} state={state} className={styles.cardLink}>
         {article}
       </Link>
     );

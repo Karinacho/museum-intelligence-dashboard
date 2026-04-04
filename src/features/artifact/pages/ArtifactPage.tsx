@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { useDepartments } from '@/features/gallery/hooks/useDepartments';
 import RelatedWorksGrid from '../components/RelatedWorksGrid';
 import { useArtifactDetail } from '../hooks/useArtifactDetail';
@@ -12,6 +12,11 @@ import styles from './ArtifactPage.module.css';
 
 const ArtifactPage = () => {
   const { id: idParam } = useParams<{ id: string }>();
+  const location = useLocation();
+  const backTo =
+    typeof (location.state as { from?: unknown } | null)?.from === 'string'
+      ? ((location.state as { from: string }).from || '/')
+      : '/';
   const objectId = idParam != null ? Number.parseInt(idParam, 10) : Number.NaN;
   const validId = Number.isFinite(objectId) && objectId > 0;
 
@@ -41,7 +46,7 @@ const ArtifactPage = () => {
     return (
       <div className={styles.page}>
         <nav className={styles.nav}>
-          <Link to="/" className={styles.back}>
+          <Link to={backTo} className={styles.back}>
             ← Research gallery
           </Link>
         </nav>
@@ -55,7 +60,7 @@ const ArtifactPage = () => {
   return (
     <div className={styles.page}>
       <nav className={styles.nav}>
-        <Link to="/" className={styles.back}>
+        <Link to={backTo} className={styles.back}>
           ← Research gallery
         </Link>
       </nav>

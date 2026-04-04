@@ -70,6 +70,24 @@ describe('Assessment — component logic', () => {
 
       expect(router.state.location.search).toBe('');
     });
+
+    it('restores form controls from URL query params on mount', () => {
+      const router = createMemoryRouter(
+        [{ path: '/', element: <GalleryFiltersBar /> }],
+        {
+          initialEntries: [
+            '/?dept=11&dateBegin=-500&dateEnd=120&keyword=statue',
+          ],
+        }
+      );
+
+      renderWithProviders(router);
+
+      expect(screen.getByLabelText(/department/i)).toHaveValue('11');
+      expect(screen.getByLabelText(/date begin/i)).toHaveValue('-500');
+      expect(screen.getByLabelText(/date end/i)).toHaveValue('120');
+      expect(screen.getByLabelText(/keyword/i)).toHaveValue('statue');
+    });
   });
 
   describe('RelatedWorksGrid', () => {

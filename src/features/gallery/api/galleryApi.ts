@@ -26,11 +26,24 @@ export const fetchAllObjectIds = async (): Promise<number[]> => {
   return response.objectIDs ?? [];
 };
 
-export const fetchSearchObjectIds = async (
-  metSearchQueryString: string
+export const fetchObjectIdsByDepartment = async (
+  departmentId: number,
+  signal?: AbortSignal
 ): Promise<number[]> => {
   const response = await metClient.get<MetObjectsResponse>(
-    `/search?${metSearchQueryString}`
+    `/objects?departmentIds=${departmentId}`,
+    signal
+  );
+  return response.objectIDs ?? [];
+};
+
+export const fetchSearchObjectIds = async (
+  metSearchQueryString: string,
+  signal?: AbortSignal
+): Promise<number[]> => {
+  const response = await metClient.get<MetObjectsResponse>(
+    `/search?${metSearchQueryString}`,
+    signal
   );
   return response.objectIDs ?? [];
 };

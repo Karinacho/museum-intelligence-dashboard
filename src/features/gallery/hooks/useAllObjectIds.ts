@@ -14,10 +14,11 @@ import { fetchAllObjectIds } from '../api/galleryApi';
  *
  * @returns Query result with all object IDs
  */
-export const useAllObjectIds = () => {
+export const useAllObjectIds = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['objectIds'],
     queryFn: fetchAllObjectIds,
+    enabled: options?.enabled ?? true,
     staleTime: Infinity,
     gcTime: Infinity,
     refetchOnWindowFocus: false,
