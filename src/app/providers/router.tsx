@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
-import RootLayout from '@/components/layout/RootLayout.tsx';
+import RootLayout from '@/components/layout/RootLayout/RootLayout.tsx';
 
 export const router = createBrowserRouter([
   {

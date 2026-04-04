@@ -1,4 +1,5 @@
-const MET_API_BASE_URL = 'https://collectionapi.metmuseum.org/public/collection/v1';
+const MET_API_BASE_URL =
+  'https://collectionapi.metmuseum.org/public/collection/v1';
 
 /**
  * Base HTTP client for Met Museum API

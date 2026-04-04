@@ -1,6 +1,6 @@
 import { useQueries } from '@tanstack/react-query';
 import { fetchObjectById } from '../api/galleryApi';
-import { toArtworkCard, ArtworkCard } from '@/lib/models/artwork';
+import { toArtworkCard, type ArtworkCard } from '@/lib/models/artwork';
 
 /**
  * Hook to fetch multiple objects by their IDs with optimized parallel fetching

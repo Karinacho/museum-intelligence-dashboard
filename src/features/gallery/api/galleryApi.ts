@@ -1,8 +1,8 @@
 import { metClient } from '@/lib/api/metMuseumClient';
 import {
-  MetObjectsResponse,
-  MetObjectResponse,
-  ArtworkCard,
+  type MetObjectsResponse,
+  type MetObjectResponse,
+  type ArtworkCard,
   toArtworkCard,
 } from '@/lib/models/artwork';
 
