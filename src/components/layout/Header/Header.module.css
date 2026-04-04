@@ -1,0 +1,24 @@
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 1.5rem 2rem;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.title {
+  font-family: var(--font-serif), serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+}
+
+.description {
+  font-size: 0.875rem;
+  color: var(--muted);
+  font-weight: 400;
+}
