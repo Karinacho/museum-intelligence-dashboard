@@ -22,7 +22,6 @@ export const useAllObjectIds = () => {
     gcTime: Infinity,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    refetchOnMount: false,
-    retry: 3, // Retry 3 times if initial fetch fails
+    retry: 2, // Retry 2 times if initial fetch fails
   });
 };

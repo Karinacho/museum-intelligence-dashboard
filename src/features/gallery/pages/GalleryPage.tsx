@@ -1,27 +1,58 @@
-import { Card, CardSkeleton } from "@/components/ui";
+import { Card, CardSkeleton } from '@/components/ui';
 import Grid from '@/components/layout/Grid/Grid';
-import { useGallery } from '../hooks/useGallery';
+import { useGalleryWithFilters } from '../hooks/useGalleryWithFilters';
+import { useGalleryFiltersFromURL } from '../hooks/useGalleryFiltersFromURL';
+import { useEffect } from 'react';
 
 const GalleryPage = () => {
-  // This automatically fetches all 470K IDs on mount
+  // Get filters and page from URL (supports deep linking)
+  const { filters, currentPage: urlPage, setPage } = useGalleryFiltersFromURL();
+
+  // Fetch gallery data with filters
+  // Default: Highlights collection (~2K curated objects with images)
   const {
-    artworks,
     queryStates,
     isInitialLoading,
-    isPageLoading,
     currentPage,
     totalPages,
     totalObjects,
     goToNextPage,
     goToPreviousPage,
-  } = useGallery({ pageSize: 20 });
+    setCurrentPage,
+  } = useGalleryWithFilters({
+    pageSize: 20,
+    initialPage: urlPage,
+    filters,
+  });
 
-  // Show loading state while fetching all IDs (2-5 seconds)
+  // Sync URL when page changes
+  useEffect(() => {
+    if (currentPage !== urlPage) {
+      setPage(currentPage);
+    }
+  }, [currentPage, urlPage, setPage]);
+
+  // Reset to page 0 when filters change
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [filters, setCurrentPage]);
+
+  // Show loading state while fetching filtered IDs (< 1 second)
   if (isInitialLoading) {
     return (
       <div>
         <h1>Gallery</h1>
-        <p>Loading gallery database ({totalObjects} objects)...</p>
+        <p>Loading collection...</p>
+      </div>
+    );
+  }
+
+  // Show empty state if no results
+  if (totalObjects === 0) {
+    return (
+      <div>
+        <h1>Gallery</h1>
+        <p>No artworks found matching your filters.</p>
       </div>
     );
   }
@@ -30,8 +61,11 @@ const GalleryPage = () => {
     <div>
       <h1>Gallery</h1>
       <p>
-        Page {currentPage + 1} of {totalPages}
+        Showing {totalObjects} artworks • Page {currentPage + 1} of {totalPages}
       </p>
+
+      {/* TODO: Add filter UI here */}
+      {/* <GalleryFilters filters={filters} onFiltersChange={setFilters} /> */}
 
       {/* Render skeleton cards while page details are loading */}
       <Grid>
@@ -42,15 +76,11 @@ const GalleryPage = () => {
 
           if (state.data) {
             return (
-              <Card imageSrc={state?.data?.imageUrl} name={state.data.title} />
-              // <div key={state.data.id}>
-              //   <h3>{state.data.title}</h3>
-              //   <p>{state.data.artist}</p>
-              //   <p>{state.data.date}</p>
-              //   {state.data.imageUrl && (
-              //     <img src={state.data.imageUrl} alt={state.data.title} />
-              //   )}
-              // </div>
+              <Card
+                key={state.data.id}
+                imageSrc={state.data.imageUrl}
+                name={state.data.title}
+              />
             );
           }
 
@@ -64,6 +94,10 @@ const GalleryPage = () => {
         <button onClick={goToPreviousPage} disabled={currentPage === 0}>
           Previous
         </button>
+        <span>
+          {' '}
+          Page {currentPage + 1} of {totalPages}{' '}
+        </span>
         <button
           onClick={goToNextPage}
           disabled={currentPage === totalPages - 1}

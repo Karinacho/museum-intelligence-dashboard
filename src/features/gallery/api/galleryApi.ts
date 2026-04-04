@@ -5,13 +5,68 @@ import {
   type ArtworkCard,
   toArtworkCard,
 } from '@/lib/models/artwork';
+import { type GalleryFilters } from '../types/filters';
 
 /**
  * Fetch all object IDs from Met Museum
  * This returns ~470K IDs and should be called once per session
+ * @deprecated Use fetchSearchObjectIds with filters instead
  */
 export const fetchAllObjectIds = async (): Promise<number[]> => {
   const response = await metClient.get<MetObjectsResponse>('/objects');
+  return response.objectIDs;
+};
+
+/**
+ * Build search query parameters from filters
+ */
+const buildSearchParams = (filters: GalleryFilters): string => {
+  const params = new URLSearchParams();
+
+  if (filters.hasImages !== undefined) {
+    params.append('hasImages', String(filters.hasImages));
+  }
+
+  if (filters.isHighlight !== undefined) {
+    params.append('isHighlight', String(filters.isHighlight));
+  }
+
+  if (filters.departmentId !== undefined) {
+    params.append('departmentId', String(filters.departmentId));
+  }
+
+  if (filters.dateBegin !== undefined) {
+    params.append('dateBegin', String(filters.dateBegin));
+  }
+
+  if (filters.dateEnd !== undefined) {
+    params.append('dateEnd', String(filters.dateEnd));
+  }
+
+  if (filters.keyword) {
+    params.append('q', filters.keyword);
+  }
+
+  return params.toString();
+};
+
+/**
+ * Fetch object IDs based on search filters
+ * This is the preferred method for filtered queries
+ */
+export const fetchSearchObjectIds = async (
+  filters: GalleryFilters
+): Promise<number[]> => {
+  const queryString = buildSearchParams(filters);
+  const endpoint = queryString ? `/search?${queryString}` : '/objects';
+
+  const response = await metClient.get<MetObjectsResponse>(endpoint);
+
+  // Handle case where no results found
+  if (!response.objectIDs || response.objectIDs.length === 0) {
+    return [];
+  }
+
   return response.objectIDs;
 };
 
