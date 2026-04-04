@@ -16,12 +16,11 @@ import { fetchAllObjectIds } from '../api/galleryApi';
  */
 export const useAllObjectIds = () => {
   return useQuery({
-    queryKey: ['objects', 'all'],
+    queryKey: ['objectIds'],
     queryFn: fetchAllObjectIds,
     staleTime: Infinity,
     gcTime: Infinity,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    retry: 2, // Retry 2 times if initial fetch fails
   });
 };

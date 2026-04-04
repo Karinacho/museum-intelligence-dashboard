@@ -6,10 +6,13 @@ import PaginatedArtworkGrid, {
   GALLERY_PAGE_SIZE,
 } from '../components/PaginatedArtworkGrid';
 import styles from './GalleryPage.module.css';
+import {useAllObjectIds} from "@/features/gallery/hooks/useAllObjectIds.ts";
+import { GalleryHeading } from "../components";
 
 const GalleryPage = () => {
   const { isHighlights, metSearchQueryString, currentPage, setPage } =
     useFilters();
+
   const {
     data: objectIds = [],
     isLoading: isLoadingIds,
@@ -18,17 +21,23 @@ const GalleryPage = () => {
     isFetching,
   } = useSearchObjectIds(metSearchQueryString);
 
+  const {
+    data: allData = []
+  } = useAllObjectIds();
+
+  console.log(allData);
+
   const totalPages = useMemo(
-    () => Math.max(1, Math.ceil(objectIds.length / GALLERY_PAGE_SIZE)),
-    [objectIds.length]
+    () => Math.max(1, Math.ceil(allData.length / GALLERY_PAGE_SIZE)),
+    [allData.length]
   );
 
   useEffect(() => {
-    if (objectIds.length === 0) return;
+    if (allData.length === 0) return;
     if (currentPage > totalPages) {
       setPage(totalPages);
     }
-  }, [objectIds.length, currentPage, totalPages, setPage]);
+  }, [allData.length, currentPage, totalPages, setPage]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -36,19 +45,7 @@ const GalleryPage = () => {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <div className={styles.titleRow}>
-          <h1 className={styles.title}>Research gallery</h1>
-          {isHighlights ? (
-            <span className={styles.badge}>Highlights</span>
-          ) : null}
-        </div>
-        <p className={styles.subtitle}>
-          Curated discovery across The Met collection. Refine by department,
-          date, and keyword; every search is reflected in the URL for sharing
-          and reload.
-        </p>
-      </header>
+      <GalleryHeading />
 
       <GalleryFiltersBar />
 
