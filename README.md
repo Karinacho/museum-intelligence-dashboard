@@ -14,7 +14,7 @@ src/
 │
 ├── components/                  # Shared/global UI components
 │   ├── ui/
-│   │   ├── Card.tsx
+│   │   ├── CardContainer.tsx
 │   │   ├── Spinner.tsx
 │   │   ├── ErrorFallback.tsx
 │   │   ├── ImageWithFallback.tsx # Handles missing images gracefully

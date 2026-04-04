@@ -1,4 +1,4 @@
-import { Card, CardSkeleton } from '@/components/ui/Card';
+import { Card, CardSkeleton } from "@/components/ui";
 import Grid from '@/components/layout/Grid/Grid';
 import { useGallery } from '../hooks/useGallery';
 

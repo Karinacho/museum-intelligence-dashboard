@@ -7,24 +7,6 @@ interface UseGalleryOptions {
   initialPage?: number;
 }
 
-/**
- * Main gallery hook that orchestrates fetching all IDs and paginated object details
- *
- * Flow:
- * 1. Fetch all 470K object IDs once (cached infinitely)
- * 2. Client-side pagination of ID array (instant, no network)
- * 3. Fetch only current page's object details (20 IDs at a time)
- * 4. Progressive rendering as data arrives
- *
- * Performance optimizations:
- * - IDs fetched once per session
- * - Only 20 objects fetched at a time
- * - Parallel fetching with TanStack Query deduplication
- * - Individual object caching (1 hour)
- *
- * @param options - Configuration options for pagination
- * @returns Gallery state and controls
- */
 export const useGallery = ({
   pageSize = 20,
   initialPage = 0,

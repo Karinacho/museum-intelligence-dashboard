@@ -1,15 +1,15 @@
-import styles from './Card.module.css';
+import styles from './CardContainer.module.css';
 import CardImage from '@/components/ui/Card/CardImage/CardImage.tsx';
 import CardContent from '@/components/ui/Card/CardContent/CardContent.tsx';
 
-export interface CardProps {
+export interface CardContainerProps {
   imageSrc?: string | null;
   name?: string | null;
   tags?: string[];
   onClick?: () => void;
 }
 
-const Card = ({ imageSrc, name, tags, onClick }: CardProps) => {
+const CardContainer = ({ imageSrc, name, tags, onClick }: CardContainerProps) => {
   return (
     <article className={styles.card} onClick={onClick}>
       <CardImage imageSrc={imageSrc} name={name} />
@@ -18,4 +18,4 @@ const Card = ({ imageSrc, name, tags, onClick }: CardProps) => {
   );
 };
 
-export default Card;
+export default CardContainer;
