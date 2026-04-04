@@ -93,6 +93,11 @@ interface Tag {
   Wikidata_URL: string;
 }
 
+export type ArtworkStructuredDate = {
+  year: number;
+  era: 'BCE' | 'CE';
+};
+
 /**
  * Normalized artwork model for gallery card display
  */
@@ -100,7 +105,9 @@ export interface ArtworkCard {
   id: number;
   title: string;
   artist: string;
-  date: string;
+  /** Human-readable date for the card (prefers API objectDate when present). */
+  dateLine: string;
+  structuredDate: ArtworkStructuredDate | null;
   imageUrl: string | null;
 }
 
@@ -121,25 +128,87 @@ export interface ArtworkDetail extends ArtworkCard {
   objectEndDate: number | null;
 }
 
+export function parseDateFromObjectDateString(
+  objectDate: string | undefined | null
+): ArtworkStructuredDate | null {
+  if (!objectDate?.trim()) return null;
+  const s = objectDate.trim();
+
+  const bc = s.match(/(\d{1,4})\s*(?:B\.?C\.?(?:E\.?)?|BCE)/i);
+  if (bc) {
+    const year = Number.parseInt(bc[1] ?? '', 10);
+    if (!Number.isNaN(year)) return { year, era: 'BCE' };
+  }
+
+  const ce = s.match(/(\d{1,4})\s*(?:C\.?E\.?|CE|A\.?D\.?)/i);
+  if (ce) {
+    const year = Number.parseInt(ce[1] ?? '', 10);
+    if (!Number.isNaN(year)) return { year, era: 'CE' };
+  }
+
+  const plain = s.match(/^(-?\d{1,4})$/);
+  if (plain) {
+    const n = Number.parseInt(plain[1] ?? '', 10);
+    if (!Number.isNaN(n)) {
+      if (n < 0) return { year: Math.abs(n), era: 'BCE' };
+      return { year: n, era: 'CE' };
+    }
+  }
+
+  return null;
+}
+
+export function extractStructuredDate(
+  raw: MetObjectResponse
+): ArtworkStructuredDate | null {
+  const begin = raw.objectBeginDate;
+  if (typeof begin === 'number' && begin !== 0 && !Number.isNaN(begin)) {
+    if (begin < 0) return { year: Math.abs(begin), era: 'BCE' };
+    return { year: begin, era: 'CE' };
+  }
+
+  const end = raw.objectEndDate;
+  if (typeof end === 'number' && end !== 0 && !Number.isNaN(end)) {
+    if (end < 0) return { year: Math.abs(end), era: 'BCE' };
+    return { year: end, era: 'CE' };
+  }
+
+  return parseDateFromObjectDateString(raw.objectDate);
+}
+
+export function formatArtworkDateLine(
+  structured: ArtworkStructuredDate | null,
+  objectDate: string | undefined | null
+): string {
+  const od = objectDate?.trim();
+  if (od) return od;
+  if (structured) return `${structured.year} ${structured.era}`;
+  return 'Date unknown';
+}
+
 /**
- * Transform Met API response to ArtworkCard
+ * Normalize a raw /objects/{id} payload for UI consumption.
  */
-export const toArtworkCard = (
+export const transformArtwork = (
   response: MetObjectResponse
 ): ArtworkCard | null => {
-  // Skip objects without basic display data
-  if (!response.objectID || !response.title) {
-    return null;
-  }
+  if (response.objectID == null) return null;
+
+  const structuredDate = extractStructuredDate(response);
+  const dateLine = formatArtworkDateLine(structuredDate, response.objectDate);
 
   return {
     id: response.objectID,
-    title: response.title || 'Untitled',
-    artist: response.artistDisplayName || 'Unknown Artist',
-    date: response.objectDate || 'Date Unknown',
-    imageUrl: response.primaryImageSmall || null,
+    title: response.title?.trim() || 'Untitled',
+    artist: response.artistDisplayName?.trim() || 'Unknown artist',
+    dateLine,
+    structuredDate,
+    imageUrl: response.primaryImageSmall?.trim() || null,
   };
 };
+
+/** @deprecated Use transformArtwork */
+export const toArtworkCard = transformArtwork;
 
 /**
  * Transform Met API response to ArtworkDetail
@@ -147,21 +216,29 @@ export const toArtworkCard = (
 export const toArtworkDetail = (
   response: MetObjectResponse
 ): ArtworkDetail | null => {
-  const card = toArtworkCard(response);
+  const card = transformArtwork(response);
   if (!card) return null;
 
   return {
     ...card,
-    accessionNumber: response.accessionNumber || 'N/A',
-    medium: response.medium || 'Not specified',
-    dimensions: response.dimensions || 'Not specified',
-    tags: response.tags?.map((tag) => tag.term) || [],
-    creditLine: response.creditLine || 'N/A',
-    department: response.department || 'Unknown',
-    culture: response.culture || 'Unknown',
-    period: response.period || 'Unknown',
-    primaryImageLarge: response.primaryImage || null,
-    objectBeginDate: response.objectBeginDate || null,
-    objectEndDate: response.objectEndDate || null,
+    accessionNumber: response.accessionNumber?.trim() || '—',
+    medium: response.medium?.trim() || 'Not specified',
+    dimensions: response.dimensions?.trim() || 'Not specified',
+    tags: response.tags?.map((tag) => tag.term).filter(Boolean) ?? [],
+    creditLine: response.creditLine?.trim() || '—',
+    department: response.department?.trim() || 'Unknown',
+    culture: response.culture?.trim() || 'Unknown',
+    period: response.period?.trim() || 'Unknown',
+    primaryImageLarge: response.primaryImage?.trim() || null,
+    objectBeginDate:
+      typeof response.objectBeginDate === 'number' &&
+      !Number.isNaN(response.objectBeginDate)
+        ? response.objectBeginDate
+        : null,
+    objectEndDate:
+      typeof response.objectEndDate === 'number' &&
+      !Number.isNaN(response.objectEndDate)
+        ? response.objectEndDate
+        : null,
   };
 };
