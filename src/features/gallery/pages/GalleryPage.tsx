@@ -1,11 +1,15 @@
+import { useEffect, useMemo } from 'react';
 import { useFilters } from '../hooks/useFilters';
 import { useSearchObjectIds } from '../hooks/useSearchObjectIds';
 import GalleryFiltersBar from '../components/GalleryFiltersBar';
-import VirtualizedArtworkGrid from '../components/VirtualizedArtworkGrid';
+import PaginatedArtworkGrid, {
+  GALLERY_PAGE_SIZE,
+} from '../components/PaginatedArtworkGrid';
 import styles from './GalleryPage.module.css';
 
 const GalleryPage = () => {
-  const { isHighlights, metSearchQueryString } = useFilters();
+  const { isHighlights, metSearchQueryString, currentPage, setPage } =
+    useFilters();
   const {
     data: objectIds = [],
     isLoading: isLoadingIds,
@@ -13,6 +17,22 @@ const GalleryPage = () => {
     error: searchError,
     isFetching,
   } = useSearchObjectIds(metSearchQueryString);
+
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(objectIds.length / GALLERY_PAGE_SIZE)),
+    [objectIds.length]
+  );
+
+  useEffect(() => {
+    if (objectIds.length === 0) return;
+    if (currentPage > totalPages) {
+      setPage(totalPages);
+    }
+  }, [objectIds.length, currentPage, totalPages, setPage]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
 
   return (
     <div className={styles.page}>
@@ -54,9 +74,10 @@ const GalleryPage = () => {
             {objectIds.length.toLocaleString()} works
             {isFetching && !isLoadingIds ? ' · updating…' : ''}
           </p>
-          <VirtualizedArtworkGrid
+          <PaginatedArtworkGrid
             objectIds={objectIds}
-            searchKey={metSearchQueryString}
+            page={currentPage}
+            onPageChange={setPage}
           />
         </>
       ) : null}

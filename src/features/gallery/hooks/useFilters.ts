@@ -7,11 +7,24 @@ import {
   buildMetSearchQueryString,
 } from '../lib/resolveGallerySearch';
 
+const parsePageFromParams = (searchParams: URLSearchParams): number => {
+  const raw = searchParams.get('page');
+  if (raw === null || raw === '') return 1;
+  const n = Number.parseInt(raw, 10);
+  if (Number.isNaN(n) || n < 1) return 1;
+  return n;
+};
+
 export const useFilters = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const urlState = useMemo(
     () => parseUrlGalleryFilters(searchParams),
+    [searchParams]
+  );
+
+  const currentPage = useMemo(
+    () => parsePageFromParams(searchParams),
     [searchParams]
   );
 
@@ -44,15 +57,30 @@ export const useFilters = () => {
     [setSearchParams]
   );
 
+  const setPage = useCallback(
+    (page: number) => {
+      const next = new URLSearchParams(searchParams);
+      if (page <= 1) {
+        next.delete('page');
+      } else {
+        next.set('page', String(page));
+      }
+      setSearchParams(next);
+    },
+    [searchParams, setSearchParams]
+  );
+
   const resetToHighlights = useCallback(() => {
     setSearchParams(new URLSearchParams());
   }, [setSearchParams]);
 
   return {
     urlState,
+    currentPage,
     isHighlights,
     metSearchQueryString,
     setFilters,
+    setPage,
     resetToHighlights,
   };
 };
