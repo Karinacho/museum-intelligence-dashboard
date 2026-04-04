@@ -86,7 +86,7 @@ const GalleryPage = () => {
         <>
           <p className={styles.stats} aria-live="polite">
             {isUsingSeed
-              ? `${SEED_OBJECT_IDS.length.toLocaleString()} featured works`
+              ? 'Showing featured works'
               : `${objectIds.length.toLocaleString()} works`}
             {isFetching ? ' · loading full collection…' : ''}
           </p>

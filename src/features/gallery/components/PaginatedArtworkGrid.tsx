@@ -39,8 +39,7 @@ const PaginatedArtworkGrid = ({
     })),
   });
 
-  const from = (safePage - 1) * GALLERY_PAGE_SIZE + 1;
-  const to = Math.min(safePage * GALLERY_PAGE_SIZE, objectIds.length);
+  const hasNextPage = safePage < totalPages;
 
   return (
     <div className={styles.wrap}>
@@ -82,9 +81,6 @@ const PaginatedArtworkGrid = ({
       </Grid>
 
       <nav className={styles.pagination} aria-label="Gallery pages">
-        <p className={styles.range}>
-          {from}–{to} of {objectIds.length.toLocaleString()}
-        </p>
         <div className={styles.controls}>
           <button
             type="button"
@@ -95,12 +91,12 @@ const PaginatedArtworkGrid = ({
             Previous
           </button>
           <span className={styles.pageStatus}>
-            Page {safePage} of {totalPages.toLocaleString()}
+            Page {safePage}
           </span>
           <button
             type="button"
             className={styles.navBtn}
-            disabled={safePage >= totalPages}
+            disabled={!hasNextPage}
             onClick={() => onPageChange(safePage + 1)}
           >
             Next
