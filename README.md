@@ -13,3 +13,9 @@ Once the ID list is available, I fetch the **object details** for the current pa
 The **initial department load** is slower than ideal because the app must wait for the full ID list before any object fetches can begin — this is an unavoidable consequence of the API design.
 
 Additionally, I occasionally receive **403** errors when flipping through pages quickly. My suspicion is that the API detects the burst of parallel requests and temporarily blocks the client. I attempted to mitigate this by **throttling** requests, but it did not fully resolve the issue.
+
+## Additional future steps to improve initial load performance
+
+**Background prefetching:** After the first meaningful render, silently prefetch results for each department in the background and persist them to **IndexedDB**. On subsequent visits, the app hydrates from IndexedDB instantly before any network requests go out — eliminating cold start latency entirely.
+
+**Bootstrap from the Met’s CSV dataset:** The Met publishes a full CSV snapshot of their collection on GitHub (~470k objects). This could be used to pre-populate object IDs and basic metadata at **build time**, so the app never needs to discover IDs at runtime — only fetch the details and images on demand.
