@@ -1,6 +1,5 @@
-import { useEffect, useMemo } from 'react';
-import type { ReactElement } from 'react';
-import { useQueries, useQueryClient } from '@tanstack/react-query';
+import { memo, useEffect, useMemo, useRef } from 'react';
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
 import { Card, CardSkeleton } from '@/components/ui';
@@ -20,6 +19,8 @@ type PaginatedArtworkGridProps = {
   objectIds: number[];
   page: number;
   onPageChange: (page: number) => void;
+  /** True while the object-ID list query is pending and empty — show skeleton grid only. */
+  idsLoading?: boolean;
 };
 
 type PageQueryData = {
@@ -54,31 +55,70 @@ function GalleryObjectErrorSlot({
   );
 }
 
-type IdleHandle = { id: number; kind: 'ric' | 'timeout' };
+const metObjectQueryOptions = (id: number) =>
+  ({
+    queryKey: metObjectQueryKey(id),
+    queryFn: ({ signal }: { signal?: AbortSignal }) =>
+      fetchObjectById(id, signal),
+    select: (raw: MetObjectResponse) => ({
+      raw,
+      artwork: transformArtwork(raw),
+    }),
+    ...metObjectQueryDefaults,
+  }) as const;
 
-const scheduleIdle = (cb: () => void, timeoutMs: number): IdleHandle => {
-  if (typeof requestIdleCallback !== 'undefined') {
-    return {
-      id: requestIdleCallback(cb, { timeout: timeoutMs }),
-      kind: 'ric',
-    };
-  }
-  return { id: window.setTimeout(cb, 400), kind: 'timeout' };
-};
+const GalleryArtworkSlot = memo(function GalleryArtworkSlot({
+  id,
+  galleryLocation,
+}: {
+  id: number;
+  galleryLocation: string;
+}) {
+  const q = useQuery<MetObjectResponse, Error, PageQueryData>({
+    ...metObjectQueryOptions(id),
+  });
 
-const cancelScheduledIdle = (handle: IdleHandle | undefined) => {
-  if (!handle) return;
-  if (handle.kind === 'ric' && typeof cancelIdleCallback !== 'undefined') {
-    cancelIdleCallback(handle.id);
-    return;
+  if (q.isError) {
+    return (
+      <div>
+        <GalleryObjectErrorSlot id={id} query={q} />
+      </div>
+    );
   }
-  window.clearTimeout(handle.id);
-};
+  if (q.isPending) {
+    return (
+      <div>
+        <CardSkeleton />
+      </div>
+    );
+  }
+  if (!q.data?.artwork) {
+    return (
+      <div>
+        <CardSkeleton />
+      </div>
+    );
+  }
+  const a = q.data.artwork;
+  return (
+    <div>
+      <Card
+        to={`/artifact/${a.id}`}
+        state={{ from: galleryLocation }}
+        name={a.title}
+        artist={a.artist}
+        objectDate={a.dateLine}
+        imageSrc={a.imageUrl}
+      />
+    </div>
+  );
+});
 
 const PaginatedArtworkGrid = ({
   objectIds,
   page,
   onPageChange,
+  idsLoading = false,
 }: PaginatedArtworkGridProps) => {
   const location = useLocation();
   const galleryLocation = `${location.pathname}${location.search}`;
@@ -92,17 +132,20 @@ const PaginatedArtworkGrid = ({
 
   const queryClient = useQueryClient();
 
-  const queries = useQueries({
-    queries: pageIds.map((id) => ({
-      queryKey: metObjectQueryKey(id),
-      queryFn: ({ signal }) => fetchObjectById(id, signal),
-      select: (raw: MetObjectResponse) => ({
-        raw,
-        artwork: transformArtwork(raw),
-      }),
-      ...metObjectQueryDefaults,
-    })),
+  const queriesForBanner = useQueries({
+    queries:
+      idsLoading || pageIds.length === 0
+        ? []
+        : pageIds.map((id) => ({ ...metObjectQueryOptions(id) })),
   });
+
+  const showRateBanner = useMemo(
+    () =>
+      queriesForBanner.some(
+        (q) => q.isError && isRateLimitApiError(q.error)
+      ),
+    [queriesForBanner]
+  );
 
   const hasNextPage = safePage < totalPages;
 
@@ -112,105 +155,64 @@ const PaginatedArtworkGrid = ({
     return objectIds.slice(start, start + GALLERY_PAGE_SIZE);
   }, [objectIds, safePage, hasNextPage]);
 
-  const currentPageSettled =
-    pageIds.length > 0 &&
-    queries.length === pageIds.length &&
-    queries.every((q) => !q.isPending);
+  const prefetchDoneKey = useRef<string>('');
 
   useEffect(() => {
-    if (!currentPageSettled || nextPageIds.length === 0) return;
+    if (idsLoading || nextPageIds.length === 0) return;
 
-    const ids = nextPageIds.slice(0, GALLERY_PAGE_SIZE);
+    const key = nextPageIds.join(',');
     let cancelled = false;
+    let idleId: number;
 
     const run = () => {
       if (cancelled) return;
-      for (const id of ids) {
-        if (cancelled) break;
-        void queryClient.prefetchQuery({
-          queryKey: metObjectQueryKey(id),
-          queryFn: ({ signal }) => fetchObjectById(id, signal),
-          ...metObjectQueryDefaults,
-        });
+      if (prefetchDoneKey.current === key) return;
+      prefetchDoneKey.current = key;
+      for (const id of nextPageIds) {
+        void queryClient.prefetchQuery({ ...metObjectQueryOptions(id) });
       }
     };
 
-    const idleHandle = scheduleIdle(run, 4500);
+    if (typeof requestIdleCallback !== 'undefined') {
+      idleId = requestIdleCallback(run, { timeout: 2000 });
+    } else {
+      idleId = window.setTimeout(run, 400) as unknown as number;
+    }
 
     return () => {
       cancelled = true;
-      cancelScheduledIdle(idleHandle);
+      if (typeof requestIdleCallback !== 'undefined') {
+        cancelIdleCallback(idleId);
+      } else {
+        window.clearTimeout(idleId);
+      }
     };
-  }, [currentPageSettled, nextPageIds, queryClient]);
+  }, [idsLoading, nextPageIds, queryClient]);
 
-  const showRateBanner = useMemo(
-    () => queries.some((q) => q.isError && isRateLimitApiError(q.error)),
-    [queries]
-  );
-
-  const detailLoadCounts = useMemo(() => {
-    if (pageIds.length === 0 || queries.length !== pageIds.length) {
-      return null;
-    }
-    let ready = 0;
-    for (const q of queries) {
-      if (q && !q.isPending) ready += 1;
-    }
-    return { ready, total: pageIds.length };
-  }, [pageIds.length, queries]);
-
-  const visibleCards = useMemo(() => {
-    const cards: ReactElement[] = [];
-
-    for (let i = 0; i < pageIds.length; i += 1) {
-      if (cards.length >= GALLERY_PAGE_SIZE) break;
-      const id = pageIds[i];
-      const q = queries[i];
-
-      if (!q) {
-        cards.push(
-          <div key={id}>
-            <CardSkeleton />
+  if (idsLoading) {
+    return (
+      <div className={styles.wrap}>
+        <Grid>
+          {Array.from({ length: GALLERY_PAGE_SIZE }, (_, i) => (
+            <div key={`ids-loading-${i}`}>
+              <CardSkeleton />
+            </div>
+          ))}
+        </Grid>
+        <nav className={styles.pagination} aria-label="Gallery pages">
+          <div className={styles.controls}>
+            <button type="button" className={styles.navBtn} disabled>
+              Previous
+            </button>
+            <span className={styles.pageStatus}>Page 1</span>
+            <button type="button" className={styles.navBtn} disabled>
+              Next
+            </button>
           </div>
-        );
-        continue;
-      }
-      if (q.isError) {
-        cards.push(
-          <div key={id}>
-            <GalleryObjectErrorSlot id={id} query={q} />
-          </div>
-        );
-        continue;
-      }
-      if (q.isPending) {
-        cards.push(
-          <div key={id}>
-            <CardSkeleton />
-          </div>
-        );
-        continue;
-      }
-      if (!q.data || !q.data.artwork) {
-        continue;
-      }
-      const a = q.data.artwork;
-      cards.push(
-        <div key={id}>
-          <Card
-            to={`/artifact/${a.id}`}
-            state={{ from: galleryLocation }}
-            name={a.title}
-            artist={a.artist}
-            objectDate={a.dateLine}
-            imageSrc={a.imageUrl}
-          />
-        </div>
-      );
-    }
-
-    return cards;
-  }, [galleryLocation, pageIds, queries]);
+        </nav>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.wrap}>
@@ -220,13 +222,15 @@ const PaginatedArtworkGrid = ({
           will retry automatically; use Retry on a card if it stays stuck.
         </div>
       ) : null}
-      <Grid>{visibleCards}</Grid>
-      {detailLoadCounts && detailLoadCounts.ready < detailLoadCounts.total ? (
-        <p className={styles.loadProgress} aria-live="polite">
-          Loaded {detailLoadCounts.ready} of {detailLoadCounts.total} previews on
-          this page (Met API requests are throttled).
-        </p>
-      ) : null}
+      <Grid>
+        {pageIds.map((id) => (
+          <GalleryArtworkSlot
+            key={id}
+            id={id}
+            galleryLocation={galleryLocation}
+          />
+        ))}
+      </Grid>
 
       <nav className={styles.pagination} aria-label="Gallery pages">
         <div className={styles.controls}>
@@ -238,9 +242,7 @@ const PaginatedArtworkGrid = ({
           >
             Previous
           </button>
-          <span className={styles.pageStatus}>
-            Page {safePage}
-          </span>
+          <span className={styles.pageStatus}>Page {safePage}</span>
           <button
             type="button"
             className={styles.navBtn}

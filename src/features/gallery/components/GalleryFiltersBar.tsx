@@ -37,10 +37,6 @@ function buildFiltersFromDraft(d: Draft): UrlGalleryFilters {
     if (!Number.isNaN(y)) next.dateEnd = y;
   }
 
-  if (d.departmentId === '' && d.keyword.trim() === '') {
-    next.allDepartments = true;
-  }
-
   return next;
 }
 
@@ -118,7 +114,6 @@ const GalleryFiltersForm = ({
     urlState.keyword,
     urlState.dateBegin,
     urlState.dateEnd,
-    urlState.allDepartments,
     cancel,
   ]);
 
@@ -148,7 +143,7 @@ const GalleryFiltersForm = ({
               );
             }}
           >
-            <option value="">All departments</option>
+            <option value="">Highlights</option>
             {departments?.map((d) => (
               <option key={d.departmentId} value={d.departmentId}>
                 {d.displayName}

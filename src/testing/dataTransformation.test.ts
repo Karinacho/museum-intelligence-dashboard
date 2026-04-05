@@ -42,13 +42,13 @@ describe('Assessment — data transformation', () => {
     it('detects highlights mode vs filtered mode', () => {
       expect(isHighlightsMode({})).toBe(true);
       expect(isHighlightsMode({ keyword: 'vase' })).toBe(false);
-      expect(isHighlightsMode({ allDepartments: true })).toBe(false);
+      expect(isHighlightsMode({ departmentId: 1 })).toBe(false);
     });
 
-    it('parses all=1 as explicit all-departments browse', () => {
+    it('ignores legacy all=1 in URL (no all-departments mode)', () => {
       const p = new URLSearchParams();
       p.set('all', '1');
-      expect(parseUrlGalleryFilters(p)).toEqual({ allDepartments: true });
+      expect(parseUrlGalleryFilters(p)).toEqual({});
     });
 
     it('parses dateBegin and dateEnd from URL', () => {
@@ -63,11 +63,10 @@ describe('Assessment — data transformation', () => {
       });
     });
 
-    it('builds non-highlight Met query when allDepartments is set', () => {
-      const qs = buildMetSearchQueryString({ allDepartments: true });
-      expect(qs).toContain('q=*');
+    it('builds highlights Met query when no filters (isHighlight)', () => {
+      const qs = buildMetSearchQueryString({});
+      expect(qs).toContain('isHighlight=true');
       expect(qs).toContain('hasImages=true');
-      expect(qs).not.toContain('isHighlight');
     });
 
     it('uses full department ID list when department is set without keyword or dates', () => {
@@ -133,7 +132,7 @@ describe('Assessment — data transformation', () => {
     it('effectiveMetSearchDateBounds expands a single-sided range', () => {
       expect(effectiveMetSearchDateBounds({ dateBegin: 1950 })).toEqual({
         dateBegin: 1950,
-        dateEnd: 9999,
+        dateEnd: 2050,
       });
       expect(effectiveMetSearchDateBounds({ dateEnd: 500 })).toEqual({
         dateBegin: -8000,
@@ -151,12 +150,10 @@ describe('Assessment — data transformation', () => {
       ).toEqual({
         keyword: 'vase',
         departmentId: 10,
-        allDepartments: false,
         dateBegin: undefined,
         dateEnd: undefined,
       });
     });
-
   });
 
   describe('Raw object JSON → internal models', () => {
@@ -246,9 +243,7 @@ describe('Assessment — data transformation', () => {
     });
 
     it('resolves department id by display name (case-insensitive)', () => {
-      const depts = [
-        { departmentId: 11, displayName: 'European Paintings' },
-      ];
+      const depts = [{ departmentId: 11, displayName: 'European Paintings' }];
       expect(resolveDepartmentIdByName('european paintings', depts)).toBe(11);
     });
 
@@ -280,9 +275,7 @@ describe('Assessment — data transformation', () => {
         dateBegin: 1839,
         dateEnd: 1939,
       });
-      expect(
-        takeRelatedIdsExcluding([10, 20, 30], 20, 2)
-      ).toEqual([10, 30]);
+      expect(takeRelatedIdsExcluding([10, 20, 30], 20, 2)).toEqual([10, 30]);
     });
 
     it('buildRelatedWorksSearchQueryString encodes department and date window', () => {

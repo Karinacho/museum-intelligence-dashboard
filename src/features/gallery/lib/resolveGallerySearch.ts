@@ -4,13 +4,11 @@
 
 /** Open range bound sent to Met when the user supplies only one year (API expects a range). */
 const MET_SEARCH_DATE_BEGIN_OPEN = -8000;
-const MET_SEARCH_DATE_END_OPEN = 9999;
+const MET_SEARCH_DATE_END_OPEN = 2030;
 
 export type UrlGalleryFilters = {
   departmentId?: number;
   keyword?: string;
-  /** Set via URL `all=1` when user searches with "All departments" and no other filters. */
-  allDepartments?: boolean;
   /** Object begin/end year (CE; negative for BCE), passed to Met `dateBegin` / `dateEnd`. */
   dateBegin?: number;
   dateEnd?: number;
@@ -42,10 +40,6 @@ export function parseUrlGalleryFilters(
     out.keyword = kw;
   }
 
-  if (searchParams.get('all') === '1') {
-    out.allDepartments = true;
-  }
-
   const dateBegin = parseIntParam(searchParams, 'dateBegin');
   if (dateBegin !== undefined) out.dateBegin = dateBegin;
   const dateEnd = parseIntParam(searchParams, 'dateEnd');
@@ -56,7 +50,6 @@ export function parseUrlGalleryFilters(
 
 export function isHighlightsMode(state: UrlGalleryFilters): boolean {
   return (
-    !state.allDepartments &&
     state.departmentId === undefined &&
     (state.keyword === undefined || state.keyword.trim() === '') &&
     state.dateBegin === undefined &&
@@ -98,7 +91,6 @@ export function usesDepartmentObjectList(state: UrlGalleryFilters): boolean {
 export type GalleryObjectIdsKeyPart = {
   departmentId?: number;
   keyword?: string;
-  allDepartments: boolean;
   dateBegin?: number;
   dateEnd?: number;
 };
@@ -110,7 +102,6 @@ export function galleryObjectIdsQueryKeyPart(
   return {
     departmentId: state.departmentId,
     keyword: kw ? kw : undefined,
-    allDepartments: Boolean(state.allDepartments),
     dateBegin: state.dateBegin,
     dateEnd: state.dateEnd,
   };
@@ -121,20 +112,21 @@ export const galleryObjectIdsQueryKey = (state: UrlGalleryFilters) =>
 
 export function buildMetSearchQueryString(state: UrlGalleryFilters): string {
   const params = new URLSearchParams();
-  params.set('q', state.keyword?.trim() ? state.keyword.trim() : '*');
-  params.set('hasImages', 'true');
-  if (isHighlightsMode(state)) {
-    params.set('isHighlight', 'true');
-  }
 
+  const dates = effectiveMetSearchDateBounds(state);
+
+  if (dates) {
+    params.set('dateBegin', String(dates.dateBegin));
+    params.set('dateEnd', String(dates.dateEnd));
+  }
   if (state.departmentId !== undefined) {
     params.set('departmentId', String(state.departmentId));
   }
 
-  const dates = effectiveMetSearchDateBounds(state);
-  if (dates) {
-    params.set('dateBegin', String(dates.dateBegin));
-    params.set('dateEnd', String(dates.dateEnd));
+  params.set('q', state.keyword?.trim() ? state.keyword.trim() : '*');
+
+  if (isHighlightsMode(state)) {
+    params.set('isHighlight', 'true');
   }
 
   return params.toString();

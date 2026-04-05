@@ -46,9 +46,6 @@ export const useFilters = () => {
       if (next.keyword !== undefined && next.keyword.trim() !== '') {
         params.set('keyword', next.keyword.trim());
       }
-      if (next.allDepartments) {
-        params.set('all', '1');
-      }
       if (next.dateBegin !== undefined) {
         params.set('dateBegin', String(next.dateBegin));
       }

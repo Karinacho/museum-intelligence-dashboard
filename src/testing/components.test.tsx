@@ -103,7 +103,7 @@ describe('Assessment — component logic', () => {
       const search = new URLSearchParams(router.state.location.search);
       expect(search.get('dateBegin')).toBe('1800');
       expect(search.get('dateEnd')).toBe('1900');
-      expect(search.get('all')).toBe('1');
+      expect(search.get('all')).toBeNull();
     });
 
     it('debounces keyword into the URL after a pause', async () => {
