@@ -2,7 +2,6 @@ import { useEffect, useMemo } from 'react';
 import { useFilters } from '../hooks/useFilters';
 import { useGalleryObjectIds } from '../hooks/useGalleryObjectIds';
 import GalleryFiltersBar from '../components/GalleryFiltersBar';
-import { CardSkeleton } from '@/components/ui';
 import PaginatedArtworkGrid, {
   GALLERY_PAGE_SIZE,
 } from '../components/PaginatedArtworkGrid';
@@ -11,7 +10,7 @@ import styles from './GalleryPage.module.css';
 
 const GalleryPage = () => {
   const {
-    isHighlights: isDefaultMode,
+    isHighlights,
     isDeptOnly,
     urlState,
     objectListFilterKey,
@@ -21,13 +20,12 @@ const GalleryPage = () => {
 
   const {
     data: objectIds = [],
-    isLoading: isLoadingIds,
-    isError: isIdsError,
-    error: idsError,
-    isFetching: isFetchingIds,
+    isLoading,
+    isError,
+    error,
+    isFetching,
   } = useGalleryObjectIds(urlState, objectListFilterKey);
 
-  const isDefaultHighlights = isDefaultMode;
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(objectIds.length / GALLERY_PAGE_SIZE)),
@@ -45,10 +43,6 @@ const GalleryPage = () => {
     window.scrollTo(0, 0);
   }, [currentPage]);
 
-  const isLoading = isLoadingIds;
-  const isFetching = isFetchingIds;
-  const hasError = isIdsError;
-  const activeError = idsError;
 
   const filterDatesOnClient =
     isDeptOnly &&
@@ -61,10 +55,10 @@ const GalleryPage = () => {
       <GalleryFiltersBar />
   
 
-      {hasError ? (
+      {isError ? (
         <p className={styles.message} role="alert">
-          {activeError instanceof Error
-            ? activeError.message
+          {error instanceof Error
+            ? error.message
             : 'Could not load search results.'}
         </p>
       ) : null}
@@ -73,25 +67,25 @@ const GalleryPage = () => {
         <p className={styles.message}>Loading results…</p>
       ) : null}
 
-      {!hasError && !isLoading && objectIds.length === 0 ? (
+      {!isError && !isLoading && objectIds.length === 0 ? (
         <p className={styles.message}>No works match these filters.</p>
       ) : null}
 
       {objectIds.length > 0 ? (
         <>
           <p className={styles.stats} aria-live="polite">
-            {isDefaultMode
+            {isHighlights
               ? 'More than 10,000 results'
               : objectIds.length > 10_000
                 ? 'More than 10,000 results'
                 : `${objectIds.length.toLocaleString()} works`}
           </p>
-          {isDefaultHighlights && (
+          {isHighlights && (
             <p className={styles.message} aria-live="polite">
               Showing highlighted works. Add filters to broaden or narrow the set.
             </p>
           )}
-          {!isDefaultMode && isFetching ? (
+          {!isHighlights && isFetching ? (
             <p className={styles.message} aria-live="polite">
               Updating results…
             </p>
