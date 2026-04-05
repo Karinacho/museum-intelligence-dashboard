@@ -1,0 +1,1 @@
+export { default as GalleryHeading } from './GalleryHeading/GalleryHeading.tsx'

@@ -1,95 +1,13 @@
 # Museum Intelligence Dashboard
 
-## Project Structure
+I used the **Bulletproof React** project structure. For routing I used **React Router** with **lazy-loaded** components. For data fetching and caching I used **TanStack Query**.
 
-````
-src/
-├── app/
-│   ├── App.tsx                  # Root component, router setup
-│   ├── router.tsx               # Route definitions (React Router)
-│   └── queryClient.ts           # TanStack Query client config
-│
-├── assets/
-│   └── ...                      # Static images, fonts, etc.
-│
-├── components/                  # Shared/global UI components
-│   ├── ui/
-│   │   ├── Card.tsx
-│   │   ├── Spinner.tsx
-│   │   ├── ErrorFallback.tsx
-│   │   ├── ImageWithFallback.tsx # Handles missing images gracefully
-│   │   └── Pagination.tsx
-│   │
-│   └── layout/
-│       ├── Header.tsx
-│       ├── Sidebar.tsx
-│       └── PageShell.tsx         # Shared page wrapper/layout
-│
-├── features/
-│   ├── gallery/                  # Feature A: Research Gallery
-│   │   ├── api/
-│   │   │   └── galleryApi.ts     # searchObjects, getObjectDetails
-│   │   │
-│   │   ├── components/
-│   │   │   ├── GalleryGrid.tsx   # Virtualized/infinite grid of cards
-│   │   │   ├── ArtworkCard.tsx   # Image, Title, Artist, Date
-│   │   │   └── GalleryFilters.tsx# Department, Date Range, Keyword
-│   │   │
-│   │   ├── hooks/
-│   │   │   ├── useSearchArtworks.ts  # Orchestrates search + batch detail fetching
-│   │   │   └── useGalleryFilters.ts  # Syncs filters ↔ URL search params
-│   │   │
-│   │   ├── pages/
-│   │   │   └── GalleryPage.tsx   # Route page, composes filters + grid
-│   │   │
-│   │   ├── types.ts              # GalleryFilters, ArtworkSummary
-│   │   │
-│   │   └── utils/
-│   │       └── filterParams.ts   # Serialize/deserialize URL ↔ filter state
-│   │
-│   └── artifact/                 # Feature B: Artifact Analysis
-│       ├── api/
-│       │   └── artifactApi.ts    # getObjectById, searchRelatedWorks
-│       │
-│       ├── components/
-│       │   ├── ArtifactDetail.tsx # Full detail card
-│       │   ├── ArtifactMeta.tsx   # Accession, Medium, Dimensions, Credit
-│       │   ├── TagList.tsx        # Tag chips
-│       │   └── RelatedWorks.tsx   # Cross-referenced suggestions
-│       │
-│       ├── hooks/
-│       │   ├── useArtifact.ts     # Fetches + transforms single object
-│       │   └── useRelatedWorks.ts # ±50yr same-department logic
-│       │
-│       ├── pages/
-│       │   └── ArtifactPage.tsx   # Route page /artifact/:objectId
-│       │
-│       ├── types.ts               # ArtifactDetail, RelatedWork
-│       │
-│       └── utils/
-│           └── dateParser.ts      # Normalizes inconsistent date formats
-│
-├── lib/                          # Core shared logic (non-UI)
-│   ├── api/
-│   │   └── metMuseumClient.ts    # Fetch wrapper, base URL, error handling
-│   │
-│   ├── models/
-│   │   └── artwork.ts            # Canonical internal data model + mapper
-│   │
-│   └── utils/
-│       ├── dateUtils.ts          # BCE/CE parsing, range math
-│       └── debounce.ts           # For high-frequency filter input
-│
-├── testing/
-│   ├── mocks/
-│   │   ├── handlers.ts           # MSW request handlers
-│   │   ├── server.ts             # MSW server setup
-│   │   └── fixtures/
-│   │       ├── searchResponse.json
-│   │       └── objectResponse.json
-│   │
-│   └── testUtils.tsx             # Custom render with providers (Router, Query)
-│
-├── index.css                     # Global styles / reset
-└── main.tsx                      # App entry point
-````
+On initial load, all **departments** are fetched. When the user selects a department, a query fires to retrieve the **full object ID list** for that department. I explored fetching IDs in small batches, but this is a **hard API limitation** — the Met API returns the entire ID list in a single response with no way to paginate it.
+
+Once the ID list is available, I fetch the **object details** for the current page and display them. Results are **cached**, so navigating back to a department or returning to a previously visited page is instant. While the user browses the current page, the **next page’s** object details are prefetched in the background so the transition feels seamless.
+
+## Known issues
+
+The **initial department load** is slower than ideal because the app must wait for the full ID list before any object fetches can begin — this is an unavoidable consequence of the API design.
+
+Additionally, I occasionally receive **403** errors when flipping through pages quickly. My suspicion is that the API detects the burst of parallel requests and temporarily blocks the client. I attempted to mitigate this by **throttling** requests, but it did not fully resolve the issue.
