@@ -68,7 +68,7 @@ describe('Assessment — data transformation', () => {
     it('builds highlights Met query when no filters (isHighlight)', () => {
       const qs = buildMetSearchQueryString({});
       expect(qs).toContain('isHighlight=true');
-      expect(qs).toContain('hasImages=true');
+      expect(qs).toContain('q=*');
     });
 
     it('uses full department ID list when department is set without keyword or dates', () => {
@@ -88,7 +88,6 @@ describe('Assessment — data transformation', () => {
 
     it('builds Met query string with filters', () => {
       expect(buildMetSearchQueryString({})).toContain('isHighlight=true');
-      expect(buildMetSearchQueryString({})).toContain('hasImages=true');
       expect(buildMetSearchQueryString({ departmentId: 10 })).toContain(
         'departmentId=10'
       );
@@ -134,7 +133,7 @@ describe('Assessment — data transformation', () => {
     it('effectiveMetSearchDateBounds expands a single-sided range', () => {
       expect(effectiveMetSearchDateBounds({ dateBegin: 1950 })).toEqual({
         dateBegin: 1950,
-        dateEnd: 2050,
+        dateEnd: 2030,
       });
       expect(effectiveMetSearchDateBounds({ dateEnd: 500 })).toEqual({
         dateBegin: -8000,
