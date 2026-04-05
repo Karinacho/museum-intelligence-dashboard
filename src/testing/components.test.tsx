@@ -106,7 +106,7 @@ describe('Assessment — component logic', () => {
       expect(search.get('all')).toBeNull();
     });
 
-    it('debounces keyword into the URL after a pause', async () => {
+    it('does not write keyword to the URL until Search collection', async () => {
       const user = userEvent.setup();
       const router = createMemoryRouter(
         [{ path: '/', element: <GalleryFiltersBar /> }],
@@ -120,14 +120,15 @@ describe('Assessment — component logic', () => {
         new URLSearchParams(router.state.location.search).get('keyword')
       ).toBeNull();
 
-      await waitFor(
-        () => {
-          expect(
-            new URLSearchParams(router.state.location.search).get('keyword')
-          ).toBe('ab');
-        },
-        { timeout: 1500 }
-      );
+      await new Promise((r) => setTimeout(r, 500));
+      expect(
+        new URLSearchParams(router.state.location.search).get('keyword')
+      ).toBeNull();
+
+      await user.click(screen.getByRole('button', { name: /search collection/i }));
+      expect(
+        new URLSearchParams(router.state.location.search).get('keyword')
+      ).toBe('ab');
     });
   });
 

@@ -7,15 +7,21 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import GalleryPage from '@/features/gallery/pages/GalleryPage';
 
-vi.mock('@/features/gallery/components/GalleryFiltersBar', () => ({
-  default: () => <div data-testid="gallery-filters-bar">filters</div>,
-}));
+vi.mock(
+  '@/features/gallery/components/GalleryFiltersBar/GalleryFiltersBar.tsx',
+  () => ({
+    default: () => <div data-testid="gallery-filters-bar">filters</div>,
+  })
+);
 
-vi.mock('@/features/gallery/components/PaginatedArtworkGrid', () => ({
-  __esModule: true,
-  GALLERY_PAGE_SIZE: 20,
-  default: () => <div data-testid="paginated-grid">grid</div>,
-}));
+vi.mock(
+  '@/features/gallery/components/PaginatedArtworkGrid/PaginatedArtworkGrid.tsx',
+  () => ({
+    __esModule: true,
+    GALLERY_PAGE_SIZE: 20,
+    default: () => <div data-testid="paginated-grid">grid</div>,
+  })
+);
 
 vi.mock('@/features/gallery/hooks/useFilters', () => ({
   useFilters: () => ({
@@ -27,9 +33,12 @@ vi.mock('@/features/gallery/hooks/useFilters', () => ({
   }),
 }));
 
-vi.mock('@/features/gallery/hooks/useGalleryObjectIds', () => ({
-  useGalleryObjectIds: (_state: unknown) => ({
-    data: [101, 102],
+vi.mock('@/features/gallery/hooks/useGalleryPageState', () => ({
+  useGalleryPageState: () => ({
+    isHighlights: false,
+    currentPage: 1,
+    setPage: vi.fn(),
+    objectIds: [101, 102],
     isPending: false,
     isError: false,
     error: null,

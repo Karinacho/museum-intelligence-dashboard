@@ -1,13 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useFilters } from '../../hooks/useFilters.ts';
 import { useDepartments } from '../../hooks/useDepartments.ts';
 import type { UrlGalleryFilters } from '../../lib/resolveGallerySearch.ts';
 import type { MetDepartment } from '../../api/galleryApi.ts';
-import { useDebouncedCommit } from '@/lib/hooks/useDebouncedCommit.ts';
 import styles from './GalleryFiltersBar.module.css';
-
-/** Debounce keyword and date fields so the Met search query does not run on every keystroke. */
-const GALLERY_FILTER_DEBOUNCE_MS = 400;
 
 type Draft = {
   departmentId: string;
@@ -66,10 +62,7 @@ const GalleryFiltersForm = ({
     () => (urlState.dateEnd != null ? String(urlState.dateEnd) : '')
   );
 
-  /** After a debounced URL write, ignore one sync so typing ahead of the URL is not overwritten. */
-  const skipNextUrlSyncRef = useRef(false);
-
-  const commitDraftToUrl = useCallback(() => {
+  const commitSearch = useCallback(() => {
     setFilters(
       buildFiltersFromDraft({
         departmentId,
@@ -80,25 +73,7 @@ const GalleryFiltersForm = ({
     );
   }, [setFilters, departmentId, keyword, dateBeginInput, dateEndInput]);
 
-  const { schedule, cancel } = useDebouncedCommit(
-    commitDraftToUrl,
-    GALLERY_FILTER_DEBOUNCE_MS,
-    () => {
-      skipNextUrlSyncRef.current = true;
-    }
-  );
-
-  const flushImmediate = useCallback(() => {
-    cancel();
-    commitDraftToUrl();
-  }, [cancel, commitDraftToUrl]);
-
   useEffect(() => {
-    cancel();
-    if (skipNextUrlSyncRef.current) {
-      skipNextUrlSyncRef.current = false;
-      return;
-    }
     queueMicrotask(() => {
       setDepartmentId(
         urlState.departmentId != null ? String(urlState.departmentId) : ''
@@ -114,7 +89,6 @@ const GalleryFiltersForm = ({
     urlState.keyword,
     urlState.dateBegin,
     urlState.dateEnd,
-    cancel,
   ]);
 
   return (
@@ -130,17 +104,7 @@ const GalleryFiltersForm = ({
             value={departmentId}
             disabled={departmentsLoading}
             onChange={(e) => {
-              const v = e.target.value;
-              setDepartmentId(v);
-              cancel();
-              setFilters(
-                buildFiltersFromDraft({
-                  departmentId: v,
-                  keyword,
-                  dateBeginInput,
-                  dateEndInput,
-                })
-              );
+              setDepartmentId(e.target.value);
             }}
           >
             <option value="">Highlights</option>
@@ -163,10 +127,9 @@ const GalleryFiltersForm = ({
             value={keyword}
             onChange={(e) => {
               setKeyword(e.target.value);
-              schedule();
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') flushImmediate();
+              if (e.key === 'Enter') commitSearch();
             }}
           />
         </div>
@@ -185,10 +148,9 @@ const GalleryFiltersForm = ({
             value={dateBeginInput}
             onChange={(e) => {
               setDateBeginInput(e.target.value);
-              schedule();
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') flushImmediate();
+              if (e.key === 'Enter') commitSearch();
             }}
           />
         </div>
@@ -205,23 +167,21 @@ const GalleryFiltersForm = ({
             value={dateEndInput}
             onChange={(e) => {
               setDateEndInput(e.target.value);
-              schedule();
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') flushImmediate();
+              if (e.key === 'Enter') commitSearch();
             }}
           />
         </div>
       </div>
       <p className={styles.hint}>
-        Department updates the URL immediately. Keyword and years apply after you pause
-        typing ({GALLERY_FILTER_DEBOUNCE_MS}ms) or press Enter / Search collection.
+        Changes apply when you press Search collection or Enter in a field.
       </p>
       <div className={styles.actions}>
         <button
           type="button"
           className={styles.primary}
-          onClick={flushImmediate}
+          onClick={commitSearch}
           disabled={departmentsLoading}
         >
           Search collection

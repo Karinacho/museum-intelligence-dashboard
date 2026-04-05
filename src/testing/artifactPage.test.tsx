@@ -25,7 +25,7 @@ let departmentsLoading = false;
 
 const refetchSpy = vi.fn();
 
-vi.mock('@/features/artifact/components/RelatedWorksGrid', () => ({
+vi.mock('@/features/artifact/components/RelatedWorksGrid/RelatedWorksGrid', () => ({
   default: ({ ids }: { ids: number[] }) => (
     <div data-testid="related-grid">{ids.join(',')}</div>
   ),
