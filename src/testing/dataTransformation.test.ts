@@ -11,8 +11,10 @@ import {
 } from '@/lib/models/artwork';
 import {
   buildMetSearchQueryString,
+  effectiveMetSearchDateBounds,
   isHighlightsMode,
   parseUrlGalleryFilters,
+  usesDepartmentObjectList,
 } from '@/features/gallery/lib/resolveGallerySearch';
 import {
   buildRelatedWorksSearchQueryString,
@@ -45,6 +47,21 @@ describe('Assessment — data transformation', () => {
       expect(isHighlightsMode({ keyword: 'vase' })).toBe(false);
     });
 
+    it('uses full department ID list when department is set without keyword (dates optional)', () => {
+      expect(usesDepartmentObjectList({ departmentId: 9 })).toBe(true);
+      expect(
+        usesDepartmentObjectList({
+          departmentId: 9,
+          dateBegin: 1000,
+          dateEnd: 1500,
+        })
+      ).toBe(true);
+      expect(
+        usesDepartmentObjectList({ departmentId: 9, keyword: 'ink' })
+      ).toBe(false);
+      expect(usesDepartmentObjectList({ keyword: 'vase' })).toBe(false);
+    });
+
     it('builds Met query string with filters', () => {
       expect(buildMetSearchQueryString({})).toContain('isHighlight=true');
       expect(buildMetSearchQueryString({})).toContain('hasImages=true');
@@ -57,6 +74,30 @@ describe('Assessment — data transformation', () => {
       expect(buildMetSearchQueryString({ keyword: 'limestone' })).toContain(
         'q=limestone'
       );
+    });
+
+    it('synthesizes dateBegin when only dateEnd is set (Met search requires both)', () => {
+      expect(effectiveMetSearchDateBounds({ dateEnd: 1920 })).toEqual({
+        dateBegin: -8000,
+        dateEnd: 1920,
+      });
+      const qs = buildMetSearchQueryString({
+        departmentId: 10,
+        dateEnd: 1920,
+      });
+      expect(qs).toContain('departmentId=10');
+      expect(qs).toContain('dateBegin=-8000');
+      expect(qs).toContain('dateEnd=1920');
+    });
+
+    it('synthesizes dateEnd when only dateBegin is set', () => {
+      expect(effectiveMetSearchDateBounds({ dateBegin: 1800 })).toEqual({
+        dateBegin: 1800,
+        dateEnd: 9999,
+      });
+      const qs = buildMetSearchQueryString({ dateBegin: 1800 });
+      expect(qs).toContain('dateBegin=1800');
+      expect(qs).toContain('dateEnd=9999');
     });
   });
 

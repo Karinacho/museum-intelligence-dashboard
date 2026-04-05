@@ -3,6 +3,10 @@ import { useLocation } from 'react-router-dom';
 import { Card, CardSkeleton } from '@/components/ui';
 import { fetchObjectById } from '@/features/gallery/api/galleryApi';
 import { metObjectQueryKey } from '@/lib/api/metObjectQueryKey';
+import {
+  isRateLimitApiError,
+  metObjectQueryDefaults,
+} from '@/lib/api/metObjectQueryOptions';
 import { transformArtwork, type MetObjectResponse } from '@/lib/models/artwork';
 import styles from './RelatedWorksGrid.module.css';
 
@@ -16,11 +20,9 @@ const RelatedWorksGrid = ({ ids }: RelatedWorksGridProps) => {
   const queries = useQueries({
     queries: ids.map((id) => ({
       queryKey: metObjectQueryKey(id),
-      queryFn: () => fetchObjectById(id),
+      queryFn: ({ signal }) => fetchObjectById(id, signal),
       select: (raw: MetObjectResponse) => transformArtwork(raw),
-      staleTime: Number.POSITIVE_INFINITY,
-      gcTime: 1000 * 60 * 30,
-      retry: 1,
+      ...metObjectQueryDefaults,
     })),
   });
 
@@ -36,14 +38,27 @@ const RelatedWorksGrid = ({ ids }: RelatedWorksGridProps) => {
           );
         }
         if (q.isError || !q.data) {
+          const rateLimited = q.isError && isRateLimitApiError(q.error);
           return (
             <div key={id} className={styles.cell}>
-              <Card
-                name="Unavailable"
-                artist={null}
-                objectDate={null}
-                imageSrc={null}
-              />
+              <div className={styles.errorSlot}>
+                <p className={styles.errorText}>
+                  {rateLimited
+                    ? 'The API is limiting requests. Retry in a moment.'
+                    : q.isError
+                      ? 'Could not load related work.'
+                      : 'No preview for this work.'}
+                </p>
+                {q.isError ? (
+                  <button
+                    type="button"
+                    className={styles.retryBtn}
+                    onClick={() => q.refetch()}
+                  >
+                    Retry
+                  </button>
+                ) : null}
+              </div>
             </div>
           );
         }

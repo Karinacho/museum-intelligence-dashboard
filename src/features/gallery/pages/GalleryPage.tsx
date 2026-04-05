@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useFilters } from '../hooks/useFilters';
-import { useSearchObjectIds } from '../hooks/useSearchObjectIds';
-import { useDepartmentObjectIds } from '../hooks/useDepartmentObjectIds';
+import { useGalleryObjectIds } from '../hooks/useGalleryObjectIds';
 import GalleryFiltersBar from '../components/GalleryFiltersBar';
 import PaginatedArtworkGrid, {
   GALLERY_PAGE_SIZE,
@@ -14,35 +13,18 @@ const GalleryPage = () => {
     isHighlights: isDefaultMode,
     isDeptOnly,
     urlState,
-    metSearchQueryString,
+    objectListFilterKey,
     currentPage,
     setPage,
   } = useFilters();
 
-  const isSearchMode = !isDeptOnly;
-
-  // Mode 1: Highlights/search mode (default highlights + filtered search)
   const {
-    data: searchIds = [],
-    isLoading: isLoadingSearch,
-    isError: isSearchError,
-    error: searchError,
-    isFetching: isFetchingSearch,
-  } = useSearchObjectIds(metSearchQueryString, { enabled: isSearchMode });
-
-  // Mode 2: Department-only — uses /objects?departmentIds=X for complete results
-  const {
-    data: deptIds = [],
-    isLoading: isLoadingDept,
-    isError: isDeptError,
-    error: deptError,
-    isFetching: isFetchingDept,
-  } = useDepartmentObjectIds(urlState.departmentId, { enabled: isDeptOnly });
-
-  const objectIds = useMemo(() => {
-    if (isDeptOnly) return deptIds;
-    return searchIds;
-  }, [isDeptOnly, deptIds, searchIds]);
+    data: objectIds = [],
+    isLoading: isLoadingIds,
+    isError: isIdsError,
+    error: idsError,
+    isFetching: isFetchingIds,
+  } = useGalleryObjectIds(urlState, objectListFilterKey);
 
   const isDefaultHighlights = isDefaultMode;
 
@@ -62,10 +44,14 @@ const GalleryPage = () => {
     window.scrollTo(0, 0);
   }, [currentPage]);
 
-  const isLoading = isDeptOnly ? isLoadingDept : isLoadingSearch;
-  const isFetching = isDeptOnly ? isFetchingDept : isFetchingSearch;
-  const hasError = isDeptOnly ? isDeptError : isSearchError;
-  const activeError = isDeptOnly ? deptError : searchError;
+  const isLoading = isLoadingIds;
+  const isFetching = isFetchingIds;
+  const hasError = isIdsError;
+  const activeError = idsError;
+
+  const filterDatesOnClient =
+    isDeptOnly &&
+    (urlState.dateBegin !== undefined || urlState.dateEnd !== undefined);
 
   return (
     <div className={styles.page}>
@@ -114,6 +100,7 @@ const GalleryPage = () => {
             onPageChange={setPage}
             dateBegin={urlState.dateBegin}
             dateEnd={urlState.dateEnd}
+            filterDatesOnClient={filterDatesOnClient}
           />
         </>
       ) : null}

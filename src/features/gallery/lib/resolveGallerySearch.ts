@@ -50,16 +50,39 @@ export function isHighlightsMode(state: UrlGalleryFilters): boolean {
 }
 
 /**
- * Department selected with no keyword or date range.
- * Use /objects?departmentIds=X for the complete list (search index is limited).
+ * Use `/objects?departmentIds=X` for the ID list (complete for that department).
+ * When the user also sets dates, filter in the client after loading object details;
+ * Met `/search` with departmentId + dates often returns empty or tiny sets because
+ * the search index does not line up with the full department catalog.
  */
-export function isDepartmentOnlyMode(state: UrlGalleryFilters): boolean {
+export function usesDepartmentObjectList(state: UrlGalleryFilters): boolean {
   return (
     state.departmentId !== undefined &&
-    state.dateBegin === undefined &&
-    state.dateEnd === undefined &&
     (state.keyword === undefined || state.keyword.trim() === '')
   );
+}
+
+/**
+ * Met `/search` only applies date filters when **both** `dateBegin` and `dateEnd`
+ * are present. For an open-ended range in the UI, we supply a wide bound so the
+ * user’s single date still constrains results.
+ */
+const MET_SEARCH_OPEN_BEGIN = -8000;
+const MET_SEARCH_OPEN_END = 9999;
+
+export function effectiveMetSearchDateBounds(state: UrlGalleryFilters): {
+  dateBegin?: number;
+  dateEnd?: number;
+} {
+  const { dateBegin, dateEnd } = state;
+  if (dateBegin === undefined && dateEnd === undefined) return {};
+  if (dateBegin !== undefined && dateEnd !== undefined) {
+    return { dateBegin, dateEnd };
+  }
+  if (dateEnd !== undefined) {
+    return { dateBegin: MET_SEARCH_OPEN_BEGIN, dateEnd };
+  }
+  return { dateBegin, dateEnd: MET_SEARCH_OPEN_END };
 }
 
 export function buildMetSearchQueryString(state: UrlGalleryFilters): string {
@@ -73,11 +96,14 @@ export function buildMetSearchQueryString(state: UrlGalleryFilters): string {
   if (state.departmentId !== undefined) {
     params.set('departmentId', String(state.departmentId));
   }
-  if (state.dateBegin !== undefined) {
-    params.set('dateBegin', String(state.dateBegin));
+
+  const { dateBegin: metBegin, dateEnd: metEnd } =
+    effectiveMetSearchDateBounds(state);
+  if (metBegin !== undefined) {
+    params.set('dateBegin', String(metBegin));
   }
-  if (state.dateEnd !== undefined) {
-    params.set('dateEnd', String(state.dateEnd));
+  if (metEnd !== undefined) {
+    params.set('dateEnd', String(metEnd));
   }
 
   return params.toString();

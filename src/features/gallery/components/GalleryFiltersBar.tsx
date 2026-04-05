@@ -65,7 +65,8 @@ const GalleryFiltersForm = ({
     <section className={styles.bar} aria-label="Search and filters">
       <p className={styles.hint}>
         Use negative years for BCE (for example -500 for 500 BCE). Leave dates
-        empty to include all periods in the chosen department.
+        empty to include all periods in the chosen department. A single date
+        filters an open range (before end year or after begin year).
       </p>
       <div className={styles.row}>
         <div className={styles.field}>

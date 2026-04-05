@@ -5,11 +5,12 @@ const MET_API_PROXY = '/api/met';
 const MET_API_BASE_URL =
     import.meta.env.DEV ? MET_API_PROXY : MET_API_DIRECT;
 
-const MAX_CONCURRENT = 4;
-const THROTTLE_MS = 150;
+const MAX_CONCURRENT = 2;
+const THROTTLE_MS = 350;
 const MAX_RETRIES = 3;
-const BASE_DELAY_MS = 1000;
-const MAX_DELAY_MS = 10_000;
+const BASE_DELAY_MS = 2_000;
+const MAX_DELAY_MS = 15_000;
+const RATE_LIMIT_COOLDOWN_MS = 15_000;
 
 export class ApiError extends Error {
     readonly status: number;
@@ -30,6 +31,9 @@ class MetMuseumClient {
     private readonly baseUrl: string;
     private inflight = 0;
     private queue: QueueEntry[] = [];
+    private rateLimitedUntil = 0;
+    private lastFetchStart = 0;
+    private paceChain: Promise<void> = Promise.resolve();
 
     constructor(baseUrl: string = MET_API_BASE_URL) {
         this.baseUrl = baseUrl;
@@ -45,7 +49,7 @@ class MetMuseumClient {
             return;
         }
         this.inflight++;
-        setTimeout(entry.resolve, THROTTLE_MS);
+        queueMicrotask(() => entry.resolve());
     }
 
     private enqueue(signal?: AbortSignal): Promise<void> {
@@ -87,8 +91,28 @@ class MetMuseumClient {
         });
     }
 
+    private isNonRetryableClientError(status: number): boolean {
+        return status >= 400 && status < 500 && status !== 403 && status !== 429;
+    }
+
+    /** Minimum spacing between request starts (global), plus Met cooldown window. */
+    private paceBeforeFetch(signal?: AbortSignal): Promise<void> {
+        const run = async () => {
+            const now = Date.now();
+            const cooldownRemaining = Math.max(0, this.rateLimitedUntil - now);
+            const throttleWait = Math.max(0, THROTTLE_MS - (now - this.lastFetchStart));
+            const wait = Math.max(cooldownRemaining, throttleWait);
+            if (wait > 0) await this.delay(wait, signal);
+            this.lastFetchStart = Date.now();
+        };
+        const next = this.paceChain.then(run);
+        this.paceChain = next.catch(() => {});
+        return next;
+    }
+
     async get<T>(endpoint: string, signal?: AbortSignal): Promise<T> {
         await this.enqueue(signal);
+        await this.paceBeforeFetch(signal);
         const url = `${this.baseUrl}${endpoint}`;
 
         let lastError: unknown = null;
@@ -96,7 +120,11 @@ class MetMuseumClient {
         try {
             for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
                 if (attempt > 0) {
-                    const backoff = Math.min(BASE_DELAY_MS * 2 ** (attempt - 1), MAX_DELAY_MS);
+                    const cooldownRemaining = Math.max(0, this.rateLimitedUntil - Date.now());
+                    const backoff = Math.max(
+                        Math.min(BASE_DELAY_MS * 2 ** (attempt - 1), MAX_DELAY_MS),
+                        cooldownRemaining
+                    );
                     await this.delay(backoff, signal);
                 }
 
@@ -110,12 +138,18 @@ class MetMuseumClient {
                         `Met API error: ${response.status} ${response.statusText}`
                     );
 
-                    if (response.status >= 400 && response.status < 500) throw apiError;
+                    if (response.status === 403 || response.status === 429) {
+                        this.rateLimitedUntil = Date.now() + RATE_LIMIT_COOLDOWN_MS;
+                        lastError = apiError;
+                        continue;
+                    }
+
+                    if (this.isNonRetryableClientError(response.status)) throw apiError;
 
                     lastError = apiError;
                 } catch (error) {
                     if (error instanceof DOMException && error.name === 'AbortError') throw error;
-                    if (error instanceof ApiError && error.status >= 400 && error.status < 500) throw error;
+                    if (error instanceof ApiError && this.isNonRetryableClientError(error.status)) throw error;
                     lastError = error;
                 }
             }

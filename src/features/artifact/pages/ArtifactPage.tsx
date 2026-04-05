@@ -132,6 +132,7 @@ const ArtifactPage = () => {
       {detail && (
         <article className={styles.article}>
           <HeroImage
+            key={detail.id}
             small={detail.imageUrl}
             large={detail.primaryImageLarge}
             styles={styles}

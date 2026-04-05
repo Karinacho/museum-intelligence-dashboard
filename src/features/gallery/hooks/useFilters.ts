@@ -4,8 +4,7 @@ import {
   type UrlGalleryFilters,
   parseUrlGalleryFilters,
   isHighlightsMode,
-  isDepartmentOnlyMode,
-  buildMetSearchQueryString,
+  usesDepartmentObjectList,
 } from '../lib/resolveGallerySearch';
 
 const parsePageFromParams = (searchParams: URLSearchParams): number => {
@@ -29,11 +28,16 @@ export const useFilters = () => {
     [searchParams]
   );
 
-  const isHighlights = useMemo(() => isHighlightsMode(urlState), [urlState]);
-  const isDeptOnly = useMemo(() => isDepartmentOnlyMode(urlState), [urlState]);
+  /** Filters only (excludes `page`) — stable key for object-ID list queries. */
+  const objectListFilterKey = useMemo(() => {
+    const p = new URLSearchParams(searchParams);
+    p.delete('page');
+    return p.toString();
+  }, [searchParams]);
 
-  const metSearchQueryString = useMemo(
-    () => buildMetSearchQueryString(urlState),
+  const isHighlights = useMemo(() => isHighlightsMode(urlState), [urlState]);
+  const isDeptOnly = useMemo(
+    () => usesDepartmentObjectList(urlState),
     [urlState]
   );
 
@@ -79,9 +83,9 @@ export const useFilters = () => {
   return {
     urlState,
     currentPage,
+    objectListFilterKey,
     isHighlights,
     isDeptOnly,
-    metSearchQueryString,
     setFilters,
     setPage,
     resetToHighlights,

@@ -1,10 +1,19 @@
+import type { QueryClient } from '@tanstack/react-query';
 import { metClient } from '@/lib/api/metMuseumClient';
+import {
+  buildMetSearchQueryString,
+  usesDepartmentObjectList,
+  type UrlGalleryFilters,
+} from '@/features/gallery/lib/resolveGallerySearch';
 import {
   type MetObjectsResponse,
   type MetObjectResponse,
   type ArtworkCard,
   transformArtwork,
 } from '@/lib/models/artwork';
+
+const DEPARTMENT_IDS_STALE_MS = 1000 * 60 * 5;
+const DEPARTMENT_IDS_GC_MS = 1000 * 60 * 10;
 
 export type MetDepartment = {
   departmentId: number;
@@ -48,10 +57,49 @@ export const fetchSearchObjectIds = async (
   return response.objectIDs ?? [];
 };
 
+/**
+ * Resolves gallery object IDs for the current URL filters.
+ * When both department and keyword are set, Met's combined `/search` is overly
+ * narrow; we intersect a global keyword search with the full department ID list.
+ * (Global search only returns a bounded set of IDs from Met; very broad terms
+ * may omit some matches.)
+ */
+export async function fetchGalleryObjectIdList(
+  state: UrlGalleryFilters,
+  signal: AbortSignal | undefined,
+  queryClient: QueryClient
+): Promise<number[]> {
+  if (usesDepartmentObjectList(state)) {
+    return fetchObjectIdsByDepartment(state.departmentId!, signal);
+  }
+
+  const keyword = state.keyword?.trim();
+  if (state.departmentId !== undefined && keyword) {
+    const searchQs = buildMetSearchQueryString({
+      ...state,
+      departmentId: undefined,
+    });
+    const searchIds = await fetchSearchObjectIds(searchQs, signal);
+    const deptIds = await queryClient.fetchQuery({
+      queryKey: ['department-objects', state.departmentId],
+      queryFn: ({ signal: s }) =>
+        fetchObjectIdsByDepartment(state.departmentId!, s),
+      signal,
+      staleTime: DEPARTMENT_IDS_STALE_MS,
+      gcTime: DEPARTMENT_IDS_GC_MS,
+    });
+    const deptSet = new Set(deptIds);
+    return searchIds.filter((id) => deptSet.has(id));
+  }
+
+  return fetchSearchObjectIds(buildMetSearchQueryString(state), signal);
+}
+
 export const fetchObjectById = async (
-  id: number
+  id: number,
+  signal?: AbortSignal
 ): Promise<MetObjectResponse> => {
-  return metClient.get<MetObjectResponse>(`/objects/${id}`);
+  return metClient.get<MetObjectResponse>(`/objects/${id}`, signal);
 };
 
 export const fetchObjectsBatch = async (

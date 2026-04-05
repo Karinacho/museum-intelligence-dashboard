@@ -47,3 +47,55 @@
   min-width: 8rem;
   text-align: center;
 }
+
+.rateBanner {
+  margin: 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--accent-soft) 35%, var(--surface));
+  color: var(--ink);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.errorSlot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 8rem;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  justify-content: center;
+}
+
+.errorText {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.retryBtn {
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  align-self: flex-start;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.retryBtn:hover {
+  border-color: var(--accent-soft);
+}
+
+.errorMeta {
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+}
