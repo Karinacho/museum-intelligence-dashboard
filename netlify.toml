@@ -1,0 +1,14 @@
+# Proxy Met API under same origin so the browser avoids CORS (matches Vite dev proxy).
+# https://docs.netlify.com/routing/redirects/rewrites-proxies/
+
+[[redirects]]
+  from = "/api/met/*"
+  to = "https://collectionapi.metmuseum.org/public/collection/v1/:splat"
+  status = 200
+  force = true
+
+# SPA (React Router)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

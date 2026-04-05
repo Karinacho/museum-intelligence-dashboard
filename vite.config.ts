@@ -2,6 +2,15 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 
+const metProxy = {
+  '/api/met': {
+    target: 'https://collectionapi.metmuseum.org',
+    changeOrigin: true,
+    rewrite: (path: string) =>
+      path.replace(/^\/api\/met/, '/public/collection/v1'),
+  },
+};
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
@@ -11,12 +20,9 @@ export default defineConfig({
     },
   },
   server: {
-    proxy: {
-      '/api/met': {
-        target: 'https://collectionapi.metmuseum.org',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/met/, '/public/collection/v1'),
-      },
-    },
+    proxy: metProxy,
+  },
+  preview: {
+    proxy: metProxy,
   },
 });

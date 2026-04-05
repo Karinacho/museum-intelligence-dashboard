@@ -1,9 +1,5 @@
-const MET_API_DIRECT =
-    'https://collectionapi.metmuseum.org/public/collection/v1';
-const MET_API_PROXY = '/api/met';
-
-const MET_API_BASE_URL =
-    import.meta.env.DEV ? MET_API_PROXY : MET_API_DIRECT;
+/** Same-origin path; dev server (Vite) and Netlify rewrite proxy to collectionapi.metmuseum.org. */
+const MET_API_BASE_URL = '/api/met';
 
 /** Balance throughput vs Met 403/429; lower if you see frequent rate-limit banners. */
 const MAX_CONCURRENT = 5;
