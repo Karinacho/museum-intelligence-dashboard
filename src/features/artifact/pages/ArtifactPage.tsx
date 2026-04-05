@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { useDepartments } from '@/features/gallery/hooks/useDepartments';
-import RelatedWorksGrid from '../components/RelatedWorksGrid';
+import RelatedWorksGrid from '../components/RelatedWorksGrid/RelatedWorksGrid';
 import { useArtifactDetail } from '../hooks/useArtifactDetail';
 import { useRelatedWorkIds } from '../hooks/useRelatedWorkIds';
 import {
@@ -24,7 +24,11 @@ const HeroImage = ({ small, large, styles }: HeroImageProps) => {
   if (!hasAny) {
     return (
       <div className={styles.hero}>
-        <div className={styles.heroPlaceholder} role="img" aria-label="No image available">
+        <div
+          className={styles.heroPlaceholder}
+          role="img"
+          aria-label="No image available"
+        >
           No image available
         </div>
       </div>
@@ -35,15 +39,17 @@ const HeroImage = ({ small, large, styles }: HeroImageProps) => {
 
   return (
     <div className={styles.hero}>
-      {showSmallFirst && (
-        <img src={small} alt="" className={styles.heroImg} />
-      )}
+      {showSmallFirst && <img src={small} alt="" className={styles.heroImg} />}
       <img
         src={(large || small)!}
         alt=""
         className={styles.heroImg}
         onLoad={large ? onLoad : undefined}
-        style={showSmallFirst ? { position: 'absolute', opacity: 0, pointerEvents: 'none' } : undefined}
+        style={
+          showSmallFirst
+            ? { position: 'absolute', opacity: 0, pointerEvents: 'none' }
+            : undefined
+        }
       />
     </div>
   );
@@ -54,7 +60,7 @@ const ArtifactPage = () => {
   const location = useLocation();
   const backTo =
     typeof (location.state as { from?: unknown } | null)?.from === 'string'
-      ? ((location.state as { from: string }).from || '/')
+      ? (location.state as { from: string }).from || '/'
       : '/';
   const objectId = idParam != null ? Number.parseInt(idParam, 10) : Number.NaN;
   const validId = Number.isFinite(objectId) && objectId > 0;
@@ -74,7 +80,8 @@ const ArtifactPage = () => {
   const { data: departments, isPending: departmentsLoading } = useDepartments();
 
   const readiness = useMemo(
-    () => getRelatedWorksReadiness(validId ? (detail ?? null) : null, departments),
+    () =>
+      getRelatedWorksReadiness(validId ? (detail ?? null) : null, departments),
     [validId, detail, departments]
   );
 
@@ -83,10 +90,10 @@ const ArtifactPage = () => {
     isPending: relatedIdsPending,
     isError: relatedIdsError,
   } = useRelatedWorkIds({
-      artifactId: validId ? objectId : 0,
-      detail: validId ? (detail ?? null) : null,
-      departments,
-    });
+    artifactId: validId ? objectId : 0,
+    detail: validId ? (detail ?? null) : null,
+    departments,
+  });
 
   if (!validId) {
     return (
@@ -120,7 +127,11 @@ const ArtifactPage = () => {
               ? error.message
               : 'Something went wrong while loading this object.'}
           </p>
-          <button type="button" className={styles.retry} onClick={() => refetch()}>
+          <button
+            type="button"
+            className={styles.retry}
+            onClick={() => refetch()}
+          >
             Try again
           </button>
         </div>
@@ -194,14 +205,20 @@ const ArtifactPage = () => {
               ) : null}
             </dl>
 
-            <section className={styles.creditSection} aria-labelledby="credit-heading">
+            <section
+              className={styles.creditSection}
+              aria-labelledby="credit-heading"
+            >
               <h2 id="credit-heading" className={styles.sectionTitle}>
                 Credit line
               </h2>
               <p className={styles.credit}>{detail.creditLine}</p>
             </section>
 
-            <section className={styles.tagsSection} aria-labelledby="tags-heading">
+            <section
+              className={styles.tagsSection}
+              aria-labelledby="tags-heading"
+            >
               <h2 id="tags-heading" className={styles.sectionTitle}>
                 Tags
               </h2>
@@ -220,7 +237,10 @@ const ArtifactPage = () => {
               )}
             </section>
 
-            <section className={styles.relatedSection} aria-labelledby="related-heading">
+            <section
+              className={styles.relatedSection}
+              aria-labelledby="related-heading"
+            >
               <h2 id="related-heading" className={styles.sectionTitle}>
                 Related works
               </h2>
@@ -236,15 +256,15 @@ const ArtifactPage = () => {
 
               {!departmentsLoading && readiness.status === 'no-department' ? (
                 <p className={styles.muted}>
-                  This record’s department label does not match the museum directory, so
-                  automatic neighbors are turned off.
+                  This record’s department label does not match the museum
+                  directory, so automatic neighbors are turned off.
                 </p>
               ) : null}
 
               {!departmentsLoading && readiness.status === 'no-date' ? (
                 <p className={styles.muted}>
-                  There is not enough structured date information to define a period
-                  window for suggestions.
+                  There is not enough structured date information to define a
+                  period window for suggestions.
                 </p>
               ) : null}
 
@@ -263,7 +283,8 @@ const ArtifactPage = () => {
               !relatedIdsError &&
               relatedIds.length === 0 ? (
                 <p className={styles.muted}>
-                  No other works in this department fall within the computed date window.
+                  No other works in this department fall within the computed
+                  date window.
                 </p>
               ) : null}
 

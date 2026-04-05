@@ -12,7 +12,7 @@ import {
 } from 'react-router-dom';
 import { metClient } from '@/lib/api/metMuseumClient';
 import GalleryFiltersBar from '@/features/gallery/components/GalleryFiltersBar/GalleryFiltersBar.tsx';
-import RelatedWorksGrid from '@/features/artifact/components/RelatedWorksGrid';
+import RelatedWorksGrid from '@/features/artifact/components/RelatedWorksGrid/RelatedWorksGrid';
 import { metObjectResponseMinimal } from '@/testing/fixtures/metObject';
 
 vi.mock('@/features/gallery/hooks/useDepartments', () => ({
