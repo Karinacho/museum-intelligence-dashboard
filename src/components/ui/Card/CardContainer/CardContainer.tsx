@@ -9,8 +9,6 @@ export interface CardContainerProps {
   artist?: string | null;
   objectDate?: string | null;
   tags?: string[];
-  onClick?: () => void;
-  /** When set, the whole card navigates as a link (preferred over onClick). */
   to?: string;
   state?: unknown;
 }
@@ -21,12 +19,11 @@ const CardContainer = ({
   artist,
   objectDate,
   tags,
-  onClick,
   to,
   state,
 }: CardContainerProps) => {
   const article = (
-    <article className={styles.card} onClick={onClick}>
+    <article className={styles.card}>
       <CardImage imageSrc={imageSrc} name={name} />
       <CardContent
         name={name}

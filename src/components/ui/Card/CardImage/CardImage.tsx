@@ -10,7 +10,7 @@ const CardImage = ({ imageSrc, name }: CardImageProps) => {
         <img
             loading='lazy'
             src={imageSrc!}
-            alt={name ?? 'Artwork not available'}
+            alt={name ? name : 'Artwork not available'}
             className={styles.image}
         />
     );

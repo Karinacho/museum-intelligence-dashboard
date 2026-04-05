@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useFilters } from '../hooks/useFilters';
 import { useGalleryObjectIds } from '../hooks/useGalleryObjectIds';
 import GalleryFiltersBar from '../components/GalleryFiltersBar';
+import { CardSkeleton } from '@/components/ui';
 import PaginatedArtworkGrid, {
   GALLERY_PAGE_SIZE,
 } from '../components/PaginatedArtworkGrid';
@@ -58,6 +59,7 @@ const GalleryPage = () => {
       <GalleryHeading />
 
       <GalleryFiltersBar />
+  
 
       {hasError ? (
         <p className={styles.message} role="alert">
