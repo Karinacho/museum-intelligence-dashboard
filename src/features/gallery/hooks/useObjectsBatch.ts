@@ -1,6 +1,7 @@
 import { useQueries } from '@tanstack/react-query';
 import { fetchObjectById } from '../api/galleryApi';
 import { metObjectQueryKey } from '@/lib/api/metObjectQueryKey';
+import { metObjectQueryDefaults } from '@/lib/api/metObjectQueryOptions';
 import {
   transformArtwork,
   type ArtworkCard,
@@ -11,11 +12,9 @@ export const useObjectsBatch = (ids: number[] = []) => {
   return useQueries({
     queries: ids.map((id) => ({
       queryKey: metObjectQueryKey(id),
-      queryFn: () => fetchObjectById(id),
+      queryFn: ({ signal }) => fetchObjectById(id, signal),
       select: (raw: MetObjectResponse) => transformArtwork(raw),
-      staleTime: Number.POSITIVE_INFINITY,
-      gcTime: 1000 * 60 * 30,
-      retry: 1,
+      ...metObjectQueryDefaults,
     })),
   });
 };
@@ -23,7 +22,8 @@ export const useObjectsBatch = (ids: number[] = []) => {
 export const useArtworks = (ids: number[] = []) => {
   const queries = useObjectsBatch(ids);
 
-  const isLoading = queries.some((q) => q.isLoading);
+  /** v5: `isLoading` is only true while fetching; `isPending` means no result yet. */
+  const isLoading = queries.some((q) => q.isPending);
   const isError = queries.some((q) => q.isError);
 
   const artworks = queries
@@ -35,7 +35,7 @@ export const useArtworks = (ids: number[] = []) => {
     isLoading,
     isError,
     queryStates: queries.map((q) => ({
-      isLoading: q.isLoading,
+      isLoading: q.isPending,
       isError: q.isError,
       data: q.data,
     })),

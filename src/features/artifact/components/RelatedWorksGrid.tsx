@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
 import { Card, CardSkeleton } from '@/components/ui';
@@ -26,38 +27,65 @@ const RelatedWorksGrid = ({ ids }: RelatedWorksGridProps) => {
     })),
   });
 
+  const loadCounts = useMemo(() => {
+    if (ids.length === 0 || queries.length !== ids.length) return null;
+    let ready = 0;
+    for (const q of queries) {
+      if (q && !q.isPending) ready += 1;
+    }
+    return { ready, total: ids.length };
+  }, [ids.length, queries]);
+
   return (
-    <div className={styles.grid}>
+    <>
+      {loadCounts && loadCounts.ready < loadCounts.total ? (
+        <p className={styles.loadProgress} aria-live="polite">
+          Loaded {loadCounts.ready} of {loadCounts.total} related previews…
+        </p>
+      ) : null}
+      <div className={styles.grid}>
       {ids.map((id, i) => {
         const q = queries[i];
-        if (!q || q.isLoading) {
+        if (!q) {
           return (
             <div key={id} className={styles.cell}>
               <CardSkeleton />
             </div>
           );
         }
-        if (q.isError || !q.data) {
-          const rateLimited = q.isError && isRateLimitApiError(q.error);
+        if (q.isError) {
+          const rateLimited = isRateLimitApiError(q.error);
           return (
             <div key={id} className={styles.cell}>
               <div className={styles.errorSlot}>
                 <p className={styles.errorText}>
                   {rateLimited
                     ? 'The API is limiting requests. Retry in a moment.'
-                    : q.isError
-                      ? 'Could not load related work.'
-                      : 'No preview for this work.'}
+                    : 'Could not load related work.'}
                 </p>
-                {q.isError ? (
-                  <button
-                    type="button"
-                    className={styles.retryBtn}
-                    onClick={() => q.refetch()}
-                  >
-                    Retry
-                  </button>
-                ) : null}
+                <button
+                  type="button"
+                  className={styles.retryBtn}
+                  onClick={() => q.refetch()}
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          );
+        }
+        if (q.isPending) {
+          return (
+            <div key={id} className={styles.cell}>
+              <CardSkeleton />
+            </div>
+          );
+        }
+        if (!q.data) {
+          return (
+            <div key={id} className={styles.cell}>
+              <div className={styles.errorSlot}>
+                <p className={styles.errorText}>No preview for this work.</p>
               </div>
             </div>
           );
@@ -76,7 +104,8 @@ const RelatedWorksGrid = ({ ids }: RelatedWorksGridProps) => {
           </div>
         );
       })}
-    </div>
+      </div>
+    </>
   );
 };
 

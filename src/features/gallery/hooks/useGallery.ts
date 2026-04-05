@@ -16,7 +16,7 @@ export const useGallery = ({
   // Step 1: Fetch all object IDs (one-time, cached infinitely)
   const {
     data: allObjectIds,
-    isLoading: isLoadingIds,
+    isPending: isPendingIds,
     isError: isErrorIds,
     error: errorIds,
   } = useAllObjectIds();
@@ -67,8 +67,8 @@ export const useGallery = ({
   };
 
   // Overall loading state
-  const isInitialLoading = isLoadingIds; // Only show full loading for IDs fetch
-  const isPageLoading = isLoadingArtworks && !isLoadingIds;
+  const isInitialLoading = isPendingIds;
+  const isPageLoading = isLoadingArtworks && !isPendingIds;
   const isError = isErrorIds || isErrorArtworks;
 
   return {

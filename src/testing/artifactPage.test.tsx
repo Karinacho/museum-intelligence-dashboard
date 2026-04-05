@@ -15,7 +15,7 @@ type ArtifactHookState = {
 
 type RelatedIdsHookState = {
   data: number[];
-  isLoading: boolean;
+  isPending: boolean;
   isError: boolean;
 };
 
@@ -92,7 +92,7 @@ describe('Assessment — artifact detail page', () => {
       error: null,
       refetch: refetchSpy,
     };
-    relatedIdsHookState = { data: [201, 202], isLoading: false, isError: false };
+    relatedIdsHookState = { data: [201, 202], isPending: false, isError: false };
     departmentsLoading = false;
 
     renderArtifactRoute();
@@ -123,7 +123,7 @@ describe('Assessment — artifact detail page', () => {
       error: null,
       refetch: refetchSpy,
     };
-    relatedIdsHookState = { data: [], isLoading: false, isError: false };
+    relatedIdsHookState = { data: [], isPending: false, isError: false };
     departmentsLoading = false;
 
     renderArtifactRoute();

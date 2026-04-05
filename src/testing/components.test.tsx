@@ -21,7 +21,7 @@ vi.mock('@/features/gallery/hooks/useDepartments', () => ({
       { departmentId: 10, displayName: 'Egyptian Art' },
       { departmentId: 11, displayName: 'European Paintings' },
     ],
-    isLoading: false,
+    isPending: false,
   }),
 }));
 
@@ -76,7 +76,7 @@ describe('Assessment — component logic', () => {
         [{ path: '/', element: <GalleryFiltersBar /> }],
         {
           initialEntries: [
-            '/?dept=11&dateBegin=-500&dateEnd=120&keyword=statue',
+            '/?dept=11&keyword=statue',
           ],
         }
       );
@@ -84,9 +84,50 @@ describe('Assessment — component logic', () => {
       renderWithProviders(router);
 
       expect(screen.getByLabelText(/department/i)).toHaveValue('11');
-      expect(screen.getByLabelText(/date begin/i)).toHaveValue('-500');
-      expect(screen.getByLabelText(/date end/i)).toHaveValue('120');
       expect(screen.getByLabelText(/keyword/i)).toHaveValue('statue');
+    });
+
+    it('applies date range to the URL on search', async () => {
+      const user = userEvent.setup();
+      const router = createMemoryRouter(
+        [{ path: '/', element: <GalleryFiltersBar /> }],
+        { initialEntries: ['/'] }
+      );
+
+      renderWithProviders(router);
+
+      await user.type(screen.getByLabelText(/^from year/i), '1800');
+      await user.type(screen.getByLabelText(/^to year/i), '1900');
+      await user.click(screen.getByRole('button', { name: /search collection/i }));
+
+      const search = new URLSearchParams(router.state.location.search);
+      expect(search.get('dateBegin')).toBe('1800');
+      expect(search.get('dateEnd')).toBe('1900');
+      expect(search.get('all')).toBe('1');
+    });
+
+    it('debounces keyword into the URL after a pause', async () => {
+      const user = userEvent.setup();
+      const router = createMemoryRouter(
+        [{ path: '/', element: <GalleryFiltersBar /> }],
+        { initialEntries: ['/'] }
+      );
+
+      renderWithProviders(router);
+
+      await user.type(screen.getByLabelText(/keyword/i), 'ab');
+      expect(
+        new URLSearchParams(router.state.location.search).get('keyword')
+      ).toBeNull();
+
+      await waitFor(
+        () => {
+          expect(
+            new URLSearchParams(router.state.location.search).get('keyword')
+          ).toBe('ab');
+        },
+        { timeout: 1500 }
+      );
     });
   });
 

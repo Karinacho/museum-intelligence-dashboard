@@ -4,7 +4,6 @@ import {
   type UrlGalleryFilters,
   parseUrlGalleryFilters,
   isHighlightsMode,
-  usesDepartmentObjectList,
 } from '../lib/resolveGallerySearch';
 
 const parsePageFromParams = (searchParams: URLSearchParams): number => {
@@ -35,11 +34,7 @@ export const useFilters = () => {
     return p.toString();
   }, [searchParams]);
 
-  const isHighlights = useMemo(() => isHighlightsMode(urlState), [urlState]);
-  const isDeptOnly = useMemo(
-    () => usesDepartmentObjectList(urlState),
-    [urlState]
-  );
+  const isHighlights = isHighlightsMode(urlState);
 
   const setFilters = useCallback(
     (next: UrlGalleryFilters) => {
@@ -48,14 +43,17 @@ export const useFilters = () => {
       if (next.departmentId !== undefined) {
         params.set('dept', String(next.departmentId));
       }
+      if (next.keyword !== undefined && next.keyword.trim() !== '') {
+        params.set('keyword', next.keyword.trim());
+      }
+      if (next.allDepartments) {
+        params.set('all', '1');
+      }
       if (next.dateBegin !== undefined) {
         params.set('dateBegin', String(next.dateBegin));
       }
       if (next.dateEnd !== undefined) {
         params.set('dateEnd', String(next.dateEnd));
-      }
-      if (next.keyword !== undefined && next.keyword.trim() !== '') {
-        params.set('keyword', next.keyword.trim());
       }
 
       setSearchParams(params);
@@ -85,7 +83,6 @@ export const useFilters = () => {
     currentPage,
     objectListFilterKey,
     isHighlights,
-    isDeptOnly,
     setFilters,
     setPage,
     resetToHighlights,

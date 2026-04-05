@@ -1,4 +1,3 @@
-import type { QueryClient } from '@tanstack/react-query';
 import { metClient } from '@/lib/api/metMuseumClient';
 import {
   buildMetSearchQueryString,
@@ -11,9 +10,6 @@ import {
   type ArtworkCard,
   transformArtwork,
 } from '@/lib/models/artwork';
-
-const DEPARTMENT_IDS_STALE_MS = 1000 * 60 * 5;
-const DEPARTMENT_IDS_GC_MS = 1000 * 60 * 10;
 
 export type MetDepartment = {
   departmentId: number;
@@ -59,37 +55,16 @@ export const fetchSearchObjectIds = async (
 
 /**
  * Resolves gallery object IDs for the current URL filters.
- * When both department and keyword are set, Met's combined `/search` is overly
- * narrow; we intersect a global keyword search with the full department ID list.
- * (Global search only returns a bounded set of IDs from Met; very broad terms
- * may omit some matches.)
+ * Uses `/objects?departmentIds=` only for plain department browse (no keyword, no dates).
+ * Otherwise uses Met `/search` with `q`, optional `departmentId`, and optional `dateBegin`/`dateEnd`.
+ * `/search` returns a bounded `objectIDs` list for those queries (API behavior).
  */
 export async function fetchGalleryObjectIdList(
   state: UrlGalleryFilters,
-  signal: AbortSignal | undefined,
-  queryClient: QueryClient
+  signal: AbortSignal | undefined
 ): Promise<number[]> {
   if (usesDepartmentObjectList(state)) {
     return fetchObjectIdsByDepartment(state.departmentId!, signal);
-  }
-
-  const keyword = state.keyword?.trim();
-  if (state.departmentId !== undefined && keyword) {
-    const searchQs = buildMetSearchQueryString({
-      ...state,
-      departmentId: undefined,
-    });
-    const searchIds = await fetchSearchObjectIds(searchQs, signal);
-    const deptIds = await queryClient.fetchQuery({
-      queryKey: ['department-objects', state.departmentId],
-      queryFn: ({ signal: s }) =>
-        fetchObjectIdsByDepartment(state.departmentId!, s),
-      signal,
-      staleTime: DEPARTMENT_IDS_STALE_MS,
-      gcTime: DEPARTMENT_IDS_GC_MS,
-    });
-    const deptSet = new Set(deptIds);
-    return searchIds.filter((id) => deptSet.has(id));
   }
 
   return fetchSearchObjectIds(buildMetSearchQueryString(state), signal);

@@ -4,6 +4,13 @@
   gap: 1.25rem;
 }
 
+.loadProgress {
+  margin: 0 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--ink) 72%, transparent);
+}
+
 .pagination {
   display: flex;
   justify-content: center;

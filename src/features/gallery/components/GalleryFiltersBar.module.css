@@ -40,13 +40,6 @@
   opacity: 0.7;
 }
 
-.hint {
-  font-size: 0.75rem;
-  opacity: 0.65;
-  margin: 0;
-  max-width: 42rem;
-}
-
 .input,
 .select {
   font: inherit;
@@ -100,4 +93,12 @@
 
 .ghost:hover {
   background: var(--bg);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink);
+  opacity: 0.65;
+  max-width: 42rem;
 }

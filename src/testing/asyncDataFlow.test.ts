@@ -2,7 +2,6 @@
  * Assessment: gallery API async flows (search, departments, object fetch, batch resilience).
  */
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { QueryClient } from '@tanstack/react-query';
 import { metClient } from '@/lib/api/metMuseumClient';
 import {
   fetchDepartments,
@@ -39,25 +38,21 @@ describe('Assessment — asynchronous data flow', () => {
     expect(ids).toEqual([]);
   });
 
-  it('fetchGalleryObjectIdList intersects global search with department IDs when both set', async () => {
-    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  it('fetchGalleryObjectIdList uses single Met search when department and keyword are set', async () => {
     getSpy.mockImplementation(async (endpoint: string) => {
       if (endpoint.startsWith('/search?')) {
-        expect(endpoint).not.toContain('departmentId');
+        expect(endpoint).toContain('departmentId=5');
+        expect(endpoint).toContain('q=wood');
         return { total: 3, objectIDs: [10, 20, 30] };
-      }
-      if (endpoint === '/objects?departmentIds=5') {
-        return { total: 2, objectIDs: [20, 30, 40] };
       }
       throw new Error(`unexpected ${endpoint}`);
     });
 
     const ids = await fetchGalleryObjectIdList(
       { departmentId: 5, keyword: 'wood' },
-      undefined,
-      qc
+      undefined
     );
-    expect(ids).toEqual([20, 30]);
+    expect(ids).toEqual([10, 20, 30]);
   });
 
   it('fetchDepartments normalizes missing departments array', async () => {

@@ -5,8 +5,9 @@ const MET_API_PROXY = '/api/met';
 const MET_API_BASE_URL =
     import.meta.env.DEV ? MET_API_PROXY : MET_API_DIRECT;
 
-const MAX_CONCURRENT = 2;
-const THROTTLE_MS = 350;
+/** Balance throughput vs Met 403/429; lower if you see frequent rate-limit banners. */
+const MAX_CONCURRENT = 3;
+const THROTTLE_MS = 300;
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 2_000;
 const MAX_DELAY_MS = 15_000;

@@ -78,8 +78,11 @@ const ArtifactPage = () => {
     [validId, detail, departments]
   );
 
-  const { data: relatedIds = [], isLoading: relatedIdsLoading, isError: relatedIdsError } =
-    useRelatedWorkIds({
+  const {
+    data: relatedIds = [],
+    isPending: relatedIdsPending,
+    isError: relatedIdsError,
+  } = useRelatedWorkIds({
       artifactId: validId ? objectId : 0,
       detail: validId ? (detail ?? null) : null,
       departments,
@@ -251,12 +254,12 @@ const ArtifactPage = () => {
                 </p>
               ) : null}
 
-              {readiness.status === 'ok' && relatedIdsLoading ? (
+              {readiness.status === 'ok' && relatedIdsPending ? (
                 <p className={styles.muted}>Searching the collection…</p>
               ) : null}
 
               {readiness.status === 'ok' &&
-              !relatedIdsLoading &&
+              !relatedIdsPending &&
               !relatedIdsError &&
               relatedIds.length === 0 ? (
                 <p className={styles.muted}>
@@ -266,7 +269,7 @@ const ArtifactPage = () => {
 
               {readiness.status === 'ok' &&
               relatedIds.length > 0 &&
-              !relatedIdsLoading ? (
+              !relatedIdsPending ? (
                 <RelatedWorksGrid ids={relatedIds} />
               ) : null}
             </section>

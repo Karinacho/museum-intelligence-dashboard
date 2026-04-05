@@ -2,12 +2,29 @@
  * URL ↔ Met /search query mapping (pure helpers for tests and hooks).
  */
 
+/** Open range bound sent to Met when the user supplies only one year (API expects a range). */
+const MET_SEARCH_DATE_BEGIN_OPEN = -8000;
+const MET_SEARCH_DATE_END_OPEN = 9999;
+
 export type UrlGalleryFilters = {
   departmentId?: number;
+  keyword?: string;
+  /** Set via URL `all=1` when user searches with "All departments" and no other filters. */
+  allDepartments?: boolean;
+  /** Object begin/end year (CE; negative for BCE), passed to Met `dateBegin` / `dateEnd`. */
   dateBegin?: number;
   dateEnd?: number;
-  keyword?: string;
 };
+
+function parseIntParam(
+  searchParams: URLSearchParams,
+  key: string
+): number | undefined {
+  const raw = searchParams.get(key);
+  if (raw === null || raw.trim() === '') return undefined;
+  const n = Number.parseInt(raw.trim(), 10);
+  return Number.isNaN(n) ? undefined : n;
+}
 
 export function parseUrlGalleryFilters(
   searchParams: URLSearchParams
@@ -20,70 +37,87 @@ export function parseUrlGalleryFilters(
     if (!Number.isNaN(n)) out.departmentId = n;
   }
 
-  const db = searchParams.get('dateBegin');
-  if (db !== null && db !== '') {
-    const n = Number.parseInt(db, 10);
-    if (!Number.isNaN(n)) out.dateBegin = n;
-  }
-
-  const de = searchParams.get('dateEnd');
-  if (de !== null && de !== '') {
-    const n = Number.parseInt(de, 10);
-    if (!Number.isNaN(n)) out.dateEnd = n;
-  }
-
   const kw = searchParams.get('keyword');
   if (kw !== null && kw.trim() !== '') {
     out.keyword = kw;
   }
+
+  if (searchParams.get('all') === '1') {
+    out.allDepartments = true;
+  }
+
+  const dateBegin = parseIntParam(searchParams, 'dateBegin');
+  if (dateBegin !== undefined) out.dateBegin = dateBegin;
+  const dateEnd = parseIntParam(searchParams, 'dateEnd');
+  if (dateEnd !== undefined) out.dateEnd = dateEnd;
 
   return out;
 }
 
 export function isHighlightsMode(state: UrlGalleryFilters): boolean {
   return (
+    !state.allDepartments &&
     state.departmentId === undefined &&
+    (state.keyword === undefined || state.keyword.trim() === '') &&
     state.dateBegin === undefined &&
-    state.dateEnd === undefined &&
-    (state.keyword === undefined || state.keyword.trim() === '')
+    state.dateEnd === undefined
   );
 }
 
 /**
- * Use `/objects?departmentIds=X` for the ID list (complete for that department).
- * When the user also sets dates, filter in the client after loading object details;
- * Met `/search` with departmentId + dates often returns empty or tiny sets because
- * the search index does not line up with the full department catalog.
+ * When at least one date bound is set, return both bounds for Met `/search`
+ * (single-sided ranges are expanded to a full interval).
+ */
+export function effectiveMetSearchDateBounds(
+  state: UrlGalleryFilters
+): { dateBegin: number; dateEnd: number } | null {
+  const b = state.dateBegin;
+  const e = state.dateEnd;
+  if (b === undefined && e === undefined) return null;
+  if (b !== undefined && e !== undefined) return { dateBegin: b, dateEnd: e };
+  if (b !== undefined) {
+    return { dateBegin: b, dateEnd: MET_SEARCH_DATE_END_OPEN };
+  }
+  return { dateBegin: MET_SEARCH_DATE_BEGIN_OPEN, dateEnd: e! };
+}
+
+/**
+ * Use `/objects?departmentIds=X` for the ID list (complete for that department)
+ * when there is no keyword and no date filter.
  */
 export function usesDepartmentObjectList(state: UrlGalleryFilters): boolean {
   return (
     state.departmentId !== undefined &&
-    (state.keyword === undefined || state.keyword.trim() === '')
+    (state.keyword === undefined || state.keyword.trim() === '') &&
+    state.dateBegin === undefined &&
+    state.dateEnd === undefined
   );
 }
 
-/**
- * Met `/search` only applies date filters when **both** `dateBegin` and `dateEnd`
- * are present. For an open-ended range in the UI, we supply a wide bound so the
- * user’s single date still constrains results.
- */
-const MET_SEARCH_OPEN_BEGIN = -8000;
-const MET_SEARCH_OPEN_END = 9999;
-
-export function effectiveMetSearchDateBounds(state: UrlGalleryFilters): {
+/** Normalized slice of filters for TanStack Query cache keys (matches fetch semantics). */
+export type GalleryObjectIdsKeyPart = {
+  departmentId?: number;
+  keyword?: string;
+  allDepartments: boolean;
   dateBegin?: number;
   dateEnd?: number;
-} {
-  const { dateBegin, dateEnd } = state;
-  if (dateBegin === undefined && dateEnd === undefined) return {};
-  if (dateBegin !== undefined && dateEnd !== undefined) {
-    return { dateBegin, dateEnd };
-  }
-  if (dateEnd !== undefined) {
-    return { dateBegin: MET_SEARCH_OPEN_BEGIN, dateEnd };
-  }
-  return { dateBegin, dateEnd: MET_SEARCH_OPEN_END };
+};
+
+export function galleryObjectIdsQueryKeyPart(
+  state: UrlGalleryFilters
+): GalleryObjectIdsKeyPart {
+  const kw = state.keyword?.trim();
+  return {
+    departmentId: state.departmentId,
+    keyword: kw ? kw : undefined,
+    allDepartments: Boolean(state.allDepartments),
+    dateBegin: state.dateBegin,
+    dateEnd: state.dateEnd,
+  };
 }
+
+export const galleryObjectIdsQueryKey = (state: UrlGalleryFilters) =>
+  ['gallery-object-ids', galleryObjectIdsQueryKeyPart(state)] as const;
 
 export function buildMetSearchQueryString(state: UrlGalleryFilters): string {
   const params = new URLSearchParams();
@@ -97,13 +131,10 @@ export function buildMetSearchQueryString(state: UrlGalleryFilters): string {
     params.set('departmentId', String(state.departmentId));
   }
 
-  const { dateBegin: metBegin, dateEnd: metEnd } =
-    effectiveMetSearchDateBounds(state);
-  if (metBegin !== undefined) {
-    params.set('dateBegin', String(metBegin));
-  }
-  if (metEnd !== undefined) {
-    params.set('dateEnd', String(metEnd));
+  const dates = effectiveMetSearchDateBounds(state);
+  if (dates) {
+    params.set('dateBegin', String(dates.dateBegin));
+    params.set('dateEnd', String(dates.dateEnd));
   }
 
   return params.toString();

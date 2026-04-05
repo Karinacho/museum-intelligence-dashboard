@@ -12,6 +12,7 @@ import {
 import {
   buildMetSearchQueryString,
   effectiveMetSearchDateBounds,
+  galleryObjectIdsQueryKeyPart,
   isHighlightsMode,
   parseUrlGalleryFilters,
   usesDepartmentObjectList,
@@ -31,13 +32,9 @@ describe('Assessment — data transformation', () => {
     it('parses gallery filters from URLSearchParams', () => {
       const p = new URLSearchParams();
       p.set('dept', '10');
-      p.set('dateBegin', '-1200');
-      p.set('dateEnd', '500');
       p.set('keyword', ' scarab ');
       expect(parseUrlGalleryFilters(p)).toEqual({
         departmentId: 10,
-        dateBegin: -1200,
-        dateEnd: 500,
         keyword: ' scarab ',
       });
     });
@@ -45,21 +42,47 @@ describe('Assessment — data transformation', () => {
     it('detects highlights mode vs filtered mode', () => {
       expect(isHighlightsMode({})).toBe(true);
       expect(isHighlightsMode({ keyword: 'vase' })).toBe(false);
+      expect(isHighlightsMode({ allDepartments: true })).toBe(false);
     });
 
-    it('uses full department ID list when department is set without keyword (dates optional)', () => {
+    it('parses all=1 as explicit all-departments browse', () => {
+      const p = new URLSearchParams();
+      p.set('all', '1');
+      expect(parseUrlGalleryFilters(p)).toEqual({ allDepartments: true });
+    });
+
+    it('parses dateBegin and dateEnd from URL', () => {
+      const p = new URLSearchParams();
+      p.set('dept', '11');
+      p.set('dateBegin', '1800');
+      p.set('dateEnd', '1900');
+      expect(parseUrlGalleryFilters(p)).toEqual({
+        departmentId: 11,
+        dateBegin: 1800,
+        dateEnd: 1900,
+      });
+    });
+
+    it('builds non-highlight Met query when allDepartments is set', () => {
+      const qs = buildMetSearchQueryString({ allDepartments: true });
+      expect(qs).toContain('q=*');
+      expect(qs).toContain('hasImages=true');
+      expect(qs).not.toContain('isHighlight');
+    });
+
+    it('uses full department ID list when department is set without keyword or dates', () => {
       expect(usesDepartmentObjectList({ departmentId: 9 })).toBe(true);
-      expect(
-        usesDepartmentObjectList({
-          departmentId: 9,
-          dateBegin: 1000,
-          dateEnd: 1500,
-        })
-      ).toBe(true);
       expect(
         usesDepartmentObjectList({ departmentId: 9, keyword: 'ink' })
       ).toBe(false);
       expect(usesDepartmentObjectList({ keyword: 'vase' })).toBe(false);
+      expect(
+        usesDepartmentObjectList({
+          departmentId: 9,
+          dateBegin: 1800,
+          dateEnd: 1900,
+        })
+      ).toBe(false);
     });
 
     it('builds Met query string with filters', () => {
@@ -74,31 +97,66 @@ describe('Assessment — data transformation', () => {
       expect(buildMetSearchQueryString({ keyword: 'limestone' })).toContain(
         'q=limestone'
       );
+      expect(buildMetSearchQueryString({ departmentId: 10 })).not.toContain(
+        'dateBegin'
+      );
+      expect(buildMetSearchQueryString({ departmentId: 10 })).not.toContain(
+        'dateEnd'
+      );
     });
 
-    it('synthesizes dateBegin when only dateEnd is set (Met search requires both)', () => {
-      expect(effectiveMetSearchDateBounds({ dateEnd: 1920 })).toEqual({
-        dateBegin: -8000,
-        dateEnd: 1920,
-      });
+    it('buildMetSearchQueryString adds date range for department + dates', () => {
       const qs = buildMetSearchQueryString({
-        departmentId: 10,
-        dateEnd: 1920,
+        departmentId: 11,
+        dateBegin: 1800,
+        dateEnd: 1900,
       });
-      expect(qs).toContain('departmentId=10');
-      expect(qs).toContain('dateBegin=-8000');
-      expect(qs).toContain('dateEnd=1920');
+      expect(qs).toContain('departmentId=11');
+      expect(qs).toContain('dateBegin=1800');
+      expect(qs).toContain('dateEnd=1900');
+      expect(qs).toContain('q=*');
     });
 
-    it('synthesizes dateEnd when only dateBegin is set', () => {
-      expect(effectiveMetSearchDateBounds({ dateBegin: 1800 })).toEqual({
+    it('buildMetSearchQueryString combines keyword, department, and dates', () => {
+      const qs = buildMetSearchQueryString({
+        departmentId: 11,
+        keyword: 'portrait',
         dateBegin: 1800,
+        dateEnd: 1900,
+      });
+      expect(qs).toContain('departmentId=11');
+      expect(qs).toContain('q=portrait');
+      expect(qs).toContain('dateBegin=1800');
+      expect(qs).toContain('dateEnd=1900');
+    });
+
+    it('effectiveMetSearchDateBounds expands a single-sided range', () => {
+      expect(effectiveMetSearchDateBounds({ dateBegin: 1950 })).toEqual({
+        dateBegin: 1950,
         dateEnd: 9999,
       });
-      const qs = buildMetSearchQueryString({ dateBegin: 1800 });
-      expect(qs).toContain('dateBegin=1800');
-      expect(qs).toContain('dateEnd=9999');
+      expect(effectiveMetSearchDateBounds({ dateEnd: 500 })).toEqual({
+        dateBegin: -8000,
+        dateEnd: 500,
+      });
+      expect(effectiveMetSearchDateBounds({})).toBeNull();
     });
+
+    it('galleryObjectIdsQueryKeyPart normalizes keyword whitespace for cache keys', () => {
+      expect(
+        galleryObjectIdsQueryKeyPart({
+          keyword: '  vase ',
+          departmentId: 10,
+        })
+      ).toEqual({
+        keyword: 'vase',
+        departmentId: 10,
+        allDepartments: false,
+        dateBegin: undefined,
+        dateEnd: undefined,
+      });
+    });
+
   });
 
   describe('Raw object JSON → internal models', () => {

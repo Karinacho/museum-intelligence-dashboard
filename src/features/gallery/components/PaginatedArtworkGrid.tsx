@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react';
+import type { ReactElement } from 'react';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
@@ -15,56 +16,15 @@ import styles from './PaginatedArtworkGrid.module.css';
 
 export const GALLERY_PAGE_SIZE = 20;
 
-const PREFETCH_NEXT_CAP = 12;
-
 type PaginatedArtworkGridProps = {
   objectIds: number[];
   page: number;
   onPageChange: (page: number) => void;
-  dateBegin?: number;
-  dateEnd?: number;
-  /** When true, drop cards outside the date range using object detail fields (department list mode). */
-  filterDatesOnClient?: boolean;
 };
 
 type PageQueryData = {
   raw: MetObjectResponse;
   artwork: ReturnType<typeof transformArtwork>;
-};
-
-const isFiniteYear = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isFinite(value);
-
-const toComparableYear = (value: number): number => value;
-
-const isInSelectedDateWindow = (
-  raw: MetObjectResponse,
-  dateBegin?: number,
-  dateEnd?: number
-): boolean => {
-  if (dateBegin === undefined && dateEnd === undefined) return true;
-
-  const begin = isFiniteYear(raw.objectBeginDate)
-    ? toComparableYear(raw.objectBeginDate)
-    : undefined;
-  const end = isFiniteYear(raw.objectEndDate)
-    ? toComparableYear(raw.objectEndDate)
-    : undefined;
-
-  if (begin !== undefined || end !== undefined) {
-    const min = Math.min(begin ?? end!, end ?? begin!);
-    const max = Math.max(begin ?? end!, end ?? begin!);
-    const lower = dateBegin ?? Number.NEGATIVE_INFINITY;
-    const upper = dateEnd ?? Number.POSITIVE_INFINITY;
-    return max >= lower && min <= upper;
-  }
-
-  const fallback = transformArtwork(raw)?.structuredDate;
-  if (!fallback) return true;
-  const year = fallback.era === 'BCE' ? -fallback.year : fallback.year;
-  if (dateBegin !== undefined && year < dateBegin) return false;
-  if (dateEnd !== undefined && year > dateEnd) return false;
-  return true;
 };
 
 function GalleryObjectErrorSlot({
@@ -119,20 +79,16 @@ const PaginatedArtworkGrid = ({
   objectIds,
   page,
   onPageChange,
-  dateBegin,
-  dateEnd,
-  filterDatesOnClient = false,
 }: PaginatedArtworkGridProps) => {
   const location = useLocation();
   const galleryLocation = `${location.pathname}${location.search}`;
   const totalPages = Math.max(1, Math.ceil(objectIds.length / GALLERY_PAGE_SIZE));
   const safePage = Math.min(Math.max(1, page), totalPages);
-  const backfillMultiplier = filterDatesOnClient ? 3 : 1;
 
   const pageIds = useMemo(() => {
     const start = (safePage - 1) * GALLERY_PAGE_SIZE;
-    return objectIds.slice(start, start + GALLERY_PAGE_SIZE * backfillMultiplier);
-  }, [objectIds, safePage, backfillMultiplier]);
+    return objectIds.slice(start, start + GALLERY_PAGE_SIZE);
+  }, [objectIds, safePage]);
 
   const queryClient = useQueryClient();
 
@@ -153,16 +109,18 @@ const PaginatedArtworkGrid = ({
   const nextPageIds = useMemo(() => {
     if (!hasNextPage) return [];
     const start = safePage * GALLERY_PAGE_SIZE;
-    return objectIds.slice(start, start + GALLERY_PAGE_SIZE * backfillMultiplier);
-  }, [objectIds, safePage, hasNextPage, backfillMultiplier]);
+    return objectIds.slice(start, start + GALLERY_PAGE_SIZE);
+  }, [objectIds, safePage, hasNextPage]);
 
-  const currentPageSettled = queries.every((q) => !q.isLoading);
+  const currentPageSettled =
+    pageIds.length > 0 &&
+    queries.length === pageIds.length &&
+    queries.every((q) => !q.isPending);
 
   useEffect(() => {
     if (!currentPageSettled || nextPageIds.length === 0) return;
-    if (import.meta.env.DEV) return;
 
-    const ids = nextPageIds.slice(0, PREFETCH_NEXT_CAP);
+    const ids = nextPageIds.slice(0, GALLERY_PAGE_SIZE);
     let cancelled = false;
 
     const run = () => {
@@ -177,7 +135,7 @@ const PaginatedArtworkGrid = ({
       }
     };
 
-    const idleHandle = scheduleIdle(run, 2500);
+    const idleHandle = scheduleIdle(run, 4500);
 
     return () => {
       cancelled = true;
@@ -190,15 +148,26 @@ const PaginatedArtworkGrid = ({
     [queries]
   );
 
+  const detailLoadCounts = useMemo(() => {
+    if (pageIds.length === 0 || queries.length !== pageIds.length) {
+      return null;
+    }
+    let ready = 0;
+    for (const q of queries) {
+      if (q && !q.isPending) ready += 1;
+    }
+    return { ready, total: pageIds.length };
+  }, [pageIds.length, queries]);
+
   const visibleCards = useMemo(() => {
-    const cards: JSX.Element[] = [];
+    const cards: ReactElement[] = [];
 
     for (let i = 0; i < pageIds.length; i += 1) {
       if (cards.length >= GALLERY_PAGE_SIZE) break;
       const id = pageIds[i];
       const q = queries[i];
 
-      if (!q || q.isLoading) {
+      if (!q) {
         cards.push(
           <div key={id}>
             <CardSkeleton />
@@ -214,13 +183,15 @@ const PaginatedArtworkGrid = ({
         );
         continue;
       }
-      if (!q.data || !q.data.artwork) {
+      if (q.isPending) {
+        cards.push(
+          <div key={id}>
+            <CardSkeleton />
+          </div>
+        );
         continue;
       }
-      if (
-        filterDatesOnClient &&
-        !isInSelectedDateWindow(q.data.raw, dateBegin, dateEnd)
-      ) {
+      if (!q.data || !q.data.artwork) {
         continue;
       }
       const a = q.data.artwork;
@@ -239,14 +210,7 @@ const PaginatedArtworkGrid = ({
     }
 
     return cards;
-  }, [
-    dateBegin,
-    dateEnd,
-    filterDatesOnClient,
-    galleryLocation,
-    pageIds,
-    queries,
-  ]);
+  }, [galleryLocation, pageIds, queries]);
 
   return (
     <div className={styles.wrap}>
@@ -257,6 +221,12 @@ const PaginatedArtworkGrid = ({
         </div>
       ) : null}
       <Grid>{visibleCards}</Grid>
+      {detailLoadCounts && detailLoadCounts.ready < detailLoadCounts.total ? (
+        <p className={styles.loadProgress} aria-live="polite">
+          Loaded {detailLoadCounts.ready} of {detailLoadCounts.total} previews on
+          this page (Met API requests are throttled).
+        </p>
+      ) : null}
 
       <nav className={styles.pagination} aria-label="Gallery pages">
         <div className={styles.controls}>
