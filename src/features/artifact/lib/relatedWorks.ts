@@ -13,10 +13,13 @@ export const MAX_RELATED_IDS_TO_FETCH = 12;
 
 /**
  * Met `/search` with department + dates often returns 0 even when objects exist.
- * We then scan `/objects?departmentIds=` (bounded) and filter by ±50 using `/objects/{id}`.
+ * We then match ±50 by fetching `/objects/{id}` for candidates. Strategy:
+ * 1) Department-only `/search` (small ID list, one request) — often enough hits, avoids huge `/objects?departmentIds=` first.
+ * 2) If still short, `/objects?departmentIds=` (capped slice), skipping IDs already checked.
  */
 const RELATED_WORKS_DEPARTMENT_SCAN_CAP = 500;
-const RELATED_WORKS_FETCH_CONCURRENCY = 6;
+/** Larger batches = fewer micro-rounds; Met client global queue still caps parallel in-flight requests. */
+const RELATED_WORKS_FETCH_CONCURRENCY = 12;
 
 export function resolveDepartmentIdByName(
   departmentName: string,
@@ -76,6 +79,16 @@ export function buildRelatedWorksSearchQueryString(
   return p.toString();
 }
 
+/** Department-scoped Met search (bounded objectID list) — faster to fetch than full `/objects?departmentIds=`. */
+export function buildRelatedWorksDepartmentSearchQueryString(
+  departmentId: number
+): string {
+  const p = new URLSearchParams();
+  p.set('q', '*');
+  p.set('departmentId', String(departmentId));
+  return p.toString();
+}
+
 /** True if the object’s Met begin/end range overlaps [windowBegin, windowEnd] (signed years). */
 export function metObjectOverlapsMetYearWindow(
   obj: MetObjectResponse,
@@ -94,23 +107,22 @@ export function metObjectOverlapsMetYearWindow(
   return low <= w1 && high >= w0;
 }
 
-async function collectIdsFromDepartmentScan(args: {
-  departmentId: number;
-  dateBegin: number;
-  dateEnd: number;
-  excludeId: number;
-  limit: number;
-  signal: AbortSignal | undefined;
-}): Promise<number[]> {
-  const { departmentId, dateBegin, dateEnd, excludeId, limit, signal } = args;
-  const allIds = await fetchObjectIdsByDepartment(departmentId, signal);
-  const candidates = allIds
-    .filter((id) => id !== excludeId)
-    .slice(0, RELATED_WORKS_DEPARTMENT_SCAN_CAP);
-
+async function collectMatchingIdsFromCandidateIds(
+  candidateIds: number[],
+  dateBegin: number,
+  dateEnd: number,
+  excludeId: number,
+  limit: number,
+  signal: AbortSignal | undefined
+): Promise<number[]> {
+  const ids = candidateIds.filter((id) => id !== excludeId);
   const out: number[] = [];
-  for (let i = 0; i < candidates.length && out.length < limit; i += RELATED_WORKS_FETCH_CONCURRENCY) {
-    const batch = candidates.slice(i, i + RELATED_WORKS_FETCH_CONCURRENCY);
+  for (
+    let i = 0;
+    i < ids.length && out.length < limit;
+    i += RELATED_WORKS_FETCH_CONCURRENCY
+  ) {
+    const batch = ids.slice(i, i + RELATED_WORKS_FETCH_CONCURRENCY);
     const settled = await Promise.allSettled(
       batch.map((id) => fetchObjectById(id, signal))
     );
@@ -142,14 +154,38 @@ export async function fetchRelatedWorkIdsStrict(
   if (fromSearch.length > 0) {
     return takeRelatedIdsExcluding(fromSearch, excludeId, limit);
   }
-  return collectIdsFromDepartmentScan({
-    departmentId,
+
+  const deptSearchQs =
+    buildRelatedWorksDepartmentSearchQueryString(departmentId);
+  const searchPool = await fetchSearchObjectIds(deptSearchQs, signal);
+
+  const fromSearchPool = await collectMatchingIdsFromCandidateIds(
+    searchPool,
     dateBegin,
     dateEnd,
     excludeId,
     limit,
-    signal,
-  });
+    signal
+  );
+  if (fromSearchPool.length >= limit) {
+    return fromSearchPool;
+  }
+
+  const alreadySeen = new Set<number>([excludeId, ...searchPool]);
+  const allDeptIds = await fetchObjectIdsByDepartment(departmentId, signal);
+  const rest = allDeptIds
+    .filter((id) => !alreadySeen.has(id))
+    .slice(0, RELATED_WORKS_DEPARTMENT_SCAN_CAP);
+
+  const fromDeptList = await collectMatchingIdsFromCandidateIds(
+    rest,
+    dateBegin,
+    dateEnd,
+    excludeId,
+    limit - fromSearchPool.length,
+    signal
+  );
+  return [...fromSearchPool, ...fromDeptList];
 }
 
 export function takeRelatedIdsExcluding(

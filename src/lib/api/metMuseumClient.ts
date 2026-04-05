@@ -6,8 +6,9 @@ const MET_API_BASE_URL =
     import.meta.env.DEV ? MET_API_PROXY : MET_API_DIRECT;
 
 /** Balance throughput vs Met 403/429; lower if you see frequent rate-limit banners. */
-const MAX_CONCURRENT = 3;
-const THROTTLE_MS = 300;
+const MAX_CONCURRENT = 5;
+/** Minimum gap between request starts (serial pacing); lower = faster bursts (e.g. related-works scans). */
+const THROTTLE_MS = 120;
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 2_000;
 const MAX_DELAY_MS = 15_000;

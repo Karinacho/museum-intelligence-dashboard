@@ -18,6 +18,7 @@ import {
   usesDepartmentObjectList,
 } from '@/features/gallery/lib/resolveGallerySearch';
 import {
+  buildRelatedWorksDepartmentSearchQueryString,
   buildRelatedWorksSearchQueryString,
   getRelatedWorksReadiness,
   metObjectOverlapsMetYearWindow,
@@ -322,6 +323,13 @@ describe('Assessment — data transformation', () => {
       expect(qs).toContain('dateBegin=950');
       expect(qs).toContain('dateEnd=1050');
       expect(qs).not.toContain('hasImages');
+    });
+
+    it('buildRelatedWorksDepartmentSearchQueryString is department-only search', () => {
+      const qs = buildRelatedWorksDepartmentSearchQueryString(3);
+      expect(qs).toContain('departmentId=3');
+      expect(qs).toContain('q=*');
+      expect(qs).not.toContain('dateBegin');
     });
 
   });
