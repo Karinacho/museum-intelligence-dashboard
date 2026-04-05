@@ -81,8 +81,12 @@ const ArtifactPage = () => {
 
   const readiness = useMemo(
     () =>
-      getRelatedWorksReadiness(validId ? (detail ?? null) : null, departments),
-    [validId, detail, departments]
+      getRelatedWorksReadiness(
+        validId ? (detail ?? null) : null,
+        departments,
+        departmentsLoading
+      ),
+    [validId, detail, departments, departmentsLoading]
   );
 
   const {
@@ -93,6 +97,7 @@ const ArtifactPage = () => {
     artifactId: validId ? objectId : 0,
     detail: validId ? (detail ?? null) : null,
     departments,
+    departmentsLoading,
   });
 
   if (!validId) {
@@ -246,8 +251,8 @@ const ArtifactPage = () => {
               </h2>
               <p className={styles.relatedExplainer}>
                 Suggestions share the same department and an approximate ±
-                {RELATED_PERIOD_RADIUS} year window derived from catalog dates
-                (begin, end, or parsed display date).
+                {RELATED_PERIOD_RADIUS} year window from catalog begin/end dates
+                (or parsed display date when needed).
               </p>
 
               {departmentsLoading ? (
@@ -257,7 +262,7 @@ const ArtifactPage = () => {
               {!departmentsLoading && readiness.status === 'no-department' ? (
                 <p className={styles.muted}>
                   This record’s department label does not match the museum
-                  directory, so automatic neighbors are turned off.
+                  directory, so same-department suggestions are not available.
                 </p>
               ) : null}
 

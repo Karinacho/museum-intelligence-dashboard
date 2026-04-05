@@ -20,6 +20,7 @@ import {
 import {
   buildRelatedWorksSearchQueryString,
   getRelatedWorksReadiness,
+  metObjectOverlapsMetYearWindow,
   relatedWorksDateBounds,
   resolveDepartmentIdByName,
   signedCenterYearFromArtifact,
@@ -267,7 +268,8 @@ describe('Assessment — data transformation', () => {
             objectBeginDate: 1888,
             objectEndDate: 1890,
           }),
-          depts
+          depts,
+          false
         )
       ).toEqual({
         status: 'ok',
@@ -275,7 +277,43 @@ describe('Assessment — data transformation', () => {
         dateBegin: 1839,
         dateEnd: 1939,
       });
+      expect(
+        getRelatedWorksReadiness(
+          baseDetail({
+            objectBeginDate: 1888,
+            objectEndDate: 1890,
+          }),
+          depts,
+          true
+        )
+      ).toEqual({ status: 'departments-loading' });
+      expect(
+        getRelatedWorksReadiness(
+          baseDetail({
+            department: 'The American Wing',
+            objectBeginDate: 1900,
+            objectEndDate: 1900,
+          }),
+          depts,
+          false
+        )
+      ).toEqual({ status: 'no-department' });
       expect(takeRelatedIdsExcluding([10, 20, 30], 20, 2)).toEqual([10, 30]);
+    });
+
+    it('metObjectOverlapsMetYearWindow respects ± window on Met dates', () => {
+      const inWindow = {
+        objectBeginDate: 1300,
+        objectEndDate: 1350,
+      } as MetObjectResponse;
+      expect(metObjectOverlapsMetYearWindow(inWindow, 1283, 1383)).toBe(true);
+      const outWindow = {
+        objectBeginDate: 1500,
+        objectEndDate: 1510,
+      } as MetObjectResponse;
+      expect(metObjectOverlapsMetYearWindow(outWindow, 1283, 1383)).toBe(
+        false
+      );
     });
 
     it('buildRelatedWorksSearchQueryString encodes department and date window', () => {
@@ -283,7 +321,8 @@ describe('Assessment — data transformation', () => {
       expect(qs).toContain('departmentId=11');
       expect(qs).toContain('dateBegin=950');
       expect(qs).toContain('dateEnd=1050');
-      expect(qs).toContain('hasImages=true');
+      expect(qs).not.toContain('hasImages');
     });
+
   });
 });
