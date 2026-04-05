@@ -1,5 +1,7 @@
 # Museum Intelligence Dashboard
 
+**Live preview:** [https://sensational-manatee-3724b5.netlify.app/](https://sensational-manatee-3724b5.netlify.app/)
+
 I used the **Bulletproof React** project structure. For routing I used **React Router** with **lazy-loaded** components. For data fetching and caching I used **TanStack Query**.
 
 On initial load, all **departments** are fetched. When the user selects a department, a query fires to retrieve the **full object ID list** for that department. I explored fetching IDs in small batches, but this is a **hard API limitation** — the Met API returns the entire ID list in a single response with no way to paginate it.
