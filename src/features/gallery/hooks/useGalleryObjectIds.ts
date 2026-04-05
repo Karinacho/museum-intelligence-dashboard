@@ -11,7 +11,7 @@ import {
  * `placeholderData: keepPreviousData` keeps the grid populated while filters change.
  */
 export const useGalleryObjectIds = (state: UrlGalleryFilters) => {
-  return useQuery({
+  return useQuery<number[], Error>({
     queryKey: galleryObjectIdsQueryKey(state),
     queryFn: ({ signal }) => fetchGalleryObjectIdList(state, signal),
     refetchOnWindowFocus: false,

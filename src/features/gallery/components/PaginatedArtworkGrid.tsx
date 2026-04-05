@@ -15,7 +15,7 @@ import styles from './PaginatedArtworkGrid.module.css';
 
 export const GALLERY_PAGE_SIZE = 20;
 
-type PaginatedArtworkGridProps = {
+export type PaginatedArtworkGridProps = {
   objectIds: number[];
   page: number;
   onPageChange: (page: number) => void;
