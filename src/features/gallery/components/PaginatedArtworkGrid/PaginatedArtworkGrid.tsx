@@ -3,14 +3,14 @@ import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
 import { Card, CardSkeleton } from '@/components/ui';
-import Grid from '@/components/layout/Grid/Grid';
-import { fetchObjectById } from '../api/galleryApi';
-import { metObjectQueryKey } from '@/lib/api/metObjectQueryKey';
+import Grid from '@/components/layout/Grid/Grid.tsx';
+import { fetchObjectById } from '../../api/galleryApi.ts';
+import { metObjectQueryKey } from '@/lib/api/metObjectQueryKey.ts';
 import {
   isRateLimitApiError,
   metObjectQueryDefaults,
-} from '@/lib/api/metObjectQueryOptions';
-import { transformArtwork, type MetObjectResponse } from '@/lib/models/artwork';
+} from '@/lib/api/metObjectQueryOptions.ts';
+import { transformArtwork, type MetObjectResponse } from '@/lib/models/artwork.ts';
 import styles from './PaginatedArtworkGrid.module.css';
 
 export const GALLERY_PAGE_SIZE = 20;

@@ -1,7 +1,7 @@
 import { useFilters } from '../hooks/useFilters';
 import { useGalleryPageState } from '../hooks/useGalleryPageState';
-import GalleryFiltersBar from '../components/GalleryFiltersBar';
-import PaginatedArtworkGrid from '../components/PaginatedArtworkGrid';
+import GalleryFiltersBar from '../components/GalleryFiltersBar/GalleryFiltersBar.tsx';
+import PaginatedArtworkGrid from '../components/PaginatedArtworkGrid/PaginatedArtworkGrid.tsx';
 import { GalleryStatusMessages } from '../components/GalleryStatusMessages/GalleryStatusMessages';
 import { GalleryHeading } from '../components';
 import styles from './GalleryPage.module.css';

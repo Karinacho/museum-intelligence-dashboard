@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useFilters } from '../hooks/useFilters';
-import { useDepartments } from '../hooks/useDepartments';
-import type { UrlGalleryFilters } from '../lib/resolveGallerySearch';
-import type { MetDepartment } from '../api/galleryApi';
-import { useDebouncedCommit } from '@/lib/hooks/useDebouncedCommit';
+import { useFilters } from '../../hooks/useFilters.ts';
+import { useDepartments } from '../../hooks/useDepartments.ts';
+import type { UrlGalleryFilters } from '../../lib/resolveGallerySearch.ts';
+import type { MetDepartment } from '../../api/galleryApi.ts';
+import { useDebouncedCommit } from '@/lib/hooks/useDebouncedCommit.ts';
 import styles from './GalleryFiltersBar.module.css';
 
 /** Debounce keyword and date fields so the Met search query does not run on every keystroke. */

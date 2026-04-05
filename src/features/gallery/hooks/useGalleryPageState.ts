@@ -2,7 +2,7 @@ import { useMemo, useEffect } from 'react';
 import type { UrlGalleryFilters } from '../lib/resolveGallerySearch';
 import { useFilters } from './useFilters';
 import { useGalleryObjectIds } from './useGalleryObjectIds';
-import { GALLERY_PAGE_SIZE } from '../components/PaginatedArtworkGrid';
+import { GALLERY_PAGE_SIZE } from '../components/PaginatedArtworkGrid/PaginatedArtworkGrid.tsx';
 
 export type GalleryPageState = {
   isHighlights: boolean;

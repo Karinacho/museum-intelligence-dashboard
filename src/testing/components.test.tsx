@@ -11,7 +11,7 @@ import {
   RouterProvider,
 } from 'react-router-dom';
 import { metClient } from '@/lib/api/metMuseumClient';
-import GalleryFiltersBar from '@/features/gallery/components/GalleryFiltersBar';
+import GalleryFiltersBar from '@/features/gallery/components/GalleryFiltersBar/GalleryFiltersBar.tsx';
 import RelatedWorksGrid from '@/features/artifact/components/RelatedWorksGrid';
 import { metObjectResponseMinimal } from '@/testing/fixtures/metObject';
 
