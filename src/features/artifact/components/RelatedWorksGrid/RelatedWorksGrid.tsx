@@ -44,66 +44,66 @@ const RelatedWorksGrid = ({ ids }: RelatedWorksGridProps) => {
         </p>
       ) : null}
       <div className={styles.grid}>
-      {ids.map((id, i) => {
-        const q = queries[i];
-        if (!q) {
-          return (
-            <div key={id} className={styles.cell}>
-              <CardSkeleton />
-            </div>
-          );
-        }
-        if (q.isError) {
-          const rateLimited = isRateLimitApiError(q.error);
-          return (
-            <div key={id} className={styles.cell}>
-              <div className={styles.errorSlot}>
-                <p className={styles.errorText}>
-                  {rateLimited
-                    ? 'The API is limiting requests. Retry in a moment.'
-                    : 'Could not load related work.'}
-                </p>
-                <button
-                  type="button"
-                  className={styles.retryBtn}
-                  onClick={() => q.refetch()}
-                >
-                  Retry
-                </button>
+        {ids.map((id, i) => {
+          const q = queries[i];
+          if (!q) {
+            return (
+              <div key={id} className={styles.cell}>
+                <CardSkeleton />
               </div>
-            </div>
-          );
-        }
-        if (q.isPending) {
-          return (
-            <div key={id} className={styles.cell}>
-              <CardSkeleton />
-            </div>
-          );
-        }
-        if (!q.data) {
-          return (
-            <div key={id} className={styles.cell}>
-              <div className={styles.errorSlot}>
-                <p className={styles.errorText}>No preview for this work.</p>
+            );
+          }
+          if (q.isError) {
+            const rateLimited = isRateLimitApiError(q.error);
+            return (
+              <div key={id} className={styles.cell}>
+                <div className={styles.errorSlot}>
+                  <p className={styles.errorText}>
+                    {rateLimited
+                      ? 'The API is limiting requests. Retry in a moment.'
+                      : 'Could not load related work.'}
+                  </p>
+                  <button
+                    type="button"
+                    className={styles.retryBtn}
+                    onClick={() => q.refetch()}
+                  >
+                    Retry
+                  </button>
+                </div>
               </div>
+            );
+          }
+          if (q.isPending) {
+            return (
+              <div key={id} className={styles.cell}>
+                <CardSkeleton />
+              </div>
+            );
+          }
+          if (!q.data) {
+            return (
+              <div key={id} className={styles.cell}>
+                <div className={styles.errorSlot}>
+                  <p className={styles.errorText}>No preview for this work.</p>
+                </div>
+              </div>
+            );
+          }
+          const a = q.data;
+          return (
+            <div key={id} className={styles.cell}>
+              <Card
+                to={`/artifact/${a.id}`}
+                state={{ from: artifactLocation }}
+                name={a.title}
+                artist={a.artist}
+                objectDate={a.dateLine}
+                imageSrc={a.imageUrl}
+              />
             </div>
           );
-        }
-        const a = q.data;
-        return (
-          <div key={id} className={styles.cell}>
-            <Card
-              to={`/artifact/${a.id}`}
-              state={{ from: artifactLocation }}
-              name={a.title}
-              artist={a.artist}
-              objectDate={a.dateLine}
-              imageSrc={a.imageUrl}
-            />
-          </div>
-        );
-      })}
+        })}
       </div>
     </>
   );

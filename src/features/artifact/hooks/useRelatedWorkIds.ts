@@ -22,8 +22,7 @@ export const useRelatedWorkIds = ({
   departmentsLoading,
 }: Args) => {
   const readiness = useMemo(
-    () =>
-      getRelatedWorksReadiness(detail, departments, departmentsLoading),
+    () => getRelatedWorksReadiness(detail, departments, departmentsLoading),
     [detail, departments, departmentsLoading]
   );
 

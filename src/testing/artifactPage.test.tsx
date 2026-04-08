@@ -25,11 +25,14 @@ let departmentsLoading = false;
 
 const refetchSpy = vi.fn();
 
-vi.mock('@/features/artifact/components/RelatedWorksGrid/RelatedWorksGrid', () => ({
-  default: ({ ids }: { ids: number[] }) => (
-    <div data-testid="related-grid">{ids.join(',')}</div>
-  ),
-}));
+vi.mock(
+  '@/features/artifact/components/RelatedWorksGrid/RelatedWorksGrid',
+  () => ({
+    default: ({ ids }: { ids: number[] }) => (
+      <div data-testid="related-grid">{ids.join(',')}</div>
+    ),
+  })
+);
 
 vi.mock('@/features/artifact/hooks/useArtifactDetail', () => ({
   useArtifactDetail: () => artifactHookState,
@@ -92,12 +95,18 @@ describe('Assessment — artifact detail page', () => {
       error: null,
       refetch: refetchSpy,
     };
-    relatedIdsHookState = { data: [201, 202], isPending: false, isError: false };
+    relatedIdsHookState = {
+      data: [201, 202],
+      isPending: false,
+      isError: false,
+    };
     departmentsLoading = false;
 
     renderArtifactRoute();
 
-    expect(screen.getByRole('heading', { name: 'Study of Light' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Study of Light' })
+    ).toBeInTheDocument();
     expect(screen.getByText('Accession number')).toBeInTheDocument();
     expect(screen.getByText('A.190.1')).toBeInTheDocument();
     expect(screen.getByText('Oil on canvas')).toBeInTheDocument();
@@ -130,7 +139,9 @@ describe('Assessment — artifact detail page', () => {
 
     expect(screen.getByLabelText('No image available')).toBeInTheDocument();
     expect(
-      screen.getByText('No tags are listed for this object in the collection API.')
+      screen.getByText(
+        'No tags are listed for this object in the collection API.'
+      )
     ).toBeInTheDocument();
     expect(
       screen.getByText(

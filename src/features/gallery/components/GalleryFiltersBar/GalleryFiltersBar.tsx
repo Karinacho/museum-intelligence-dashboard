@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useFilters } from '../../hooks/useFilters.ts';
-import { useDepartments } from '../../hooks/useDepartments.ts';
+import { useDepartments } from '@/features/gallery/hooks';
 import type { UrlGalleryFilters } from '../../lib/resolveGallerySearch.ts';
 import type { MetDepartment } from '../../api/galleryApi.ts';
 import styles from './GalleryFiltersBar.module.css';
@@ -37,7 +37,7 @@ function buildFiltersFromDraft(d: Draft): UrlGalleryFilters {
 }
 
 type FormProps = {
-  urlState: UrlGalleryFilters;
+  currentFilters: UrlGalleryFilters;
   departments: MetDepartment[] | undefined;
   departmentsLoading: boolean;
   setFilters: (next: UrlGalleryFilters) => void;
@@ -45,21 +45,21 @@ type FormProps = {
 };
 
 const GalleryFiltersForm = ({
-  urlState,
+  currentFilters,
   departments,
   departmentsLoading,
   setFilters,
   resetToHighlights,
 }: FormProps) => {
-  const [departmentId, setDepartmentId] = useState(
-    () => (urlState.departmentId != null ? String(urlState.departmentId) : '')
+  const [departmentId, setDepartmentId] = useState(() =>
+    currentFilters.departmentId != null ? String(currentFilters.departmentId) : ''
   );
-  const [keyword, setKeyword] = useState(() => urlState.keyword ?? '');
-  const [dateBeginInput, setDateBeginInput] = useState(
-    () => (urlState.dateBegin != null ? String(urlState.dateBegin) : '')
+  const [keyword, setKeyword] = useState(() => currentFilters.keyword ?? '');
+  const [dateBeginInput, setDateBeginInput] = useState(() =>
+    currentFilters.dateBegin != null ? String(currentFilters.dateBegin) : ''
   );
-  const [dateEndInput, setDateEndInput] = useState(
-    () => (urlState.dateEnd != null ? String(urlState.dateEnd) : '')
+  const [dateEndInput, setDateEndInput] = useState(() =>
+    currentFilters.dateEnd != null ? String(currentFilters.dateEnd) : ''
   );
 
   const commitSearch = useCallback(() => {
@@ -76,19 +76,19 @@ const GalleryFiltersForm = ({
   useEffect(() => {
     queueMicrotask(() => {
       setDepartmentId(
-        urlState.departmentId != null ? String(urlState.departmentId) : ''
+        currentFilters.departmentId != null ? String(currentFilters.departmentId) : ''
       );
-      setKeyword(urlState.keyword ?? '');
+      setKeyword(currentFilters.keyword ?? '');
       setDateBeginInput(
-        urlState.dateBegin != null ? String(urlState.dateBegin) : ''
+        currentFilters.dateBegin != null ? String(currentFilters.dateBegin) : ''
       );
-      setDateEndInput(urlState.dateEnd != null ? String(urlState.dateEnd) : '');
+      setDateEndInput(currentFilters.dateEnd != null ? String(currentFilters.dateEnd) : '');
     });
   }, [
-    urlState.departmentId,
-    urlState.keyword,
-    urlState.dateBegin,
-    urlState.dateEnd,
+    currentFilters.departmentId,
+    currentFilters.keyword,
+    currentFilters.dateBegin,
+    currentFilters.dateEnd,
   ]);
 
   return (
@@ -199,12 +199,12 @@ const GalleryFiltersForm = ({
 };
 
 const GalleryFiltersBar = () => {
-  const { urlState, setFilters, resetToHighlights } = useFilters();
+  const { currentFilters, setFilters, resetToHighlights } = useFilters();
   const { data: departments, isPending: departmentsLoading } = useDepartments();
 
   return (
     <GalleryFiltersForm
-      urlState={urlState}
+      currentFilters={currentFilters}
       departments={departments}
       departmentsLoading={departmentsLoading}
       setFilters={setFilters}

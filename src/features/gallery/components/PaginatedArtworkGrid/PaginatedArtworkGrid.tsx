@@ -10,7 +10,10 @@ import {
   isRateLimitApiError,
   metObjectQueryDefaults,
 } from '@/lib/api/metObjectQueryOptions.ts';
-import { transformArtwork, type MetObjectResponse } from '@/lib/models/artwork.ts';
+import {
+  transformArtwork,
+  type MetObjectResponse,
+} from '@/lib/models/artwork.ts';
 import styles from './PaginatedArtworkGrid.module.css';
 
 export const GALLERY_PAGE_SIZE = 20;
@@ -122,7 +125,10 @@ const PaginatedArtworkGrid = ({
 }: PaginatedArtworkGridProps) => {
   const location = useLocation();
   const galleryLocation = `${location.pathname}${location.search}`;
-  const totalPages = Math.max(1, Math.ceil(objectIds.length / GALLERY_PAGE_SIZE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(objectIds.length / GALLERY_PAGE_SIZE)
+  );
   const safePage = Math.min(Math.max(1, page), totalPages);
 
   const pageIds = useMemo(() => {
@@ -141,9 +147,7 @@ const PaginatedArtworkGrid = ({
 
   const showRateBanner = useMemo(
     () =>
-      queriesForBanner.some(
-        (q) => q.isError && isRateLimitApiError(q.error)
-      ),
+      queriesForBanner.some((q) => q.isError && isRateLimitApiError(q.error)),
     [queriesForBanner]
   );
 

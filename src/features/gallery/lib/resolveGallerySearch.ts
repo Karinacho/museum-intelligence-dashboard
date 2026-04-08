@@ -24,28 +24,37 @@ function parseIntParam(
   return Number.isNaN(n) ? undefined : n;
 }
 
-export function parseUrlGalleryFilters(
+export function parseFiltersFromParams(
   searchParams: URLSearchParams
 ): UrlGalleryFilters {
-  const out: UrlGalleryFilters = {};
+  const parsedFilters: UrlGalleryFilters = {};
 
   const dept = searchParams.get('dept');
+
   if (dept !== null && dept !== '') {
     const n = Number.parseInt(dept, 10);
-    if (!Number.isNaN(n)) out.departmentId = n;
+
+    if (!Number.isNaN(n)) {
+      parsedFilters.departmentId = n;
+    } 
   }
 
   const kw = searchParams.get('keyword');
   if (kw !== null && kw.trim() !== '') {
-    out.keyword = kw;
+    parsedFilters.keyword = kw;
   }
 
   const dateBegin = parseIntParam(searchParams, 'dateBegin');
-  if (dateBegin !== undefined) out.dateBegin = dateBegin;
-  const dateEnd = parseIntParam(searchParams, 'dateEnd');
-  if (dateEnd !== undefined) out.dateEnd = dateEnd;
+  if (dateBegin !== undefined) {
+    parsedFilters.dateBegin = dateBegin;
+  }
 
-  return out;
+  const dateEnd = parseIntParam(searchParams, 'dateEnd');
+  if (dateEnd !== undefined) {
+    parsedFilters.dateEnd = dateEnd;
+  }
+
+  return parsedFilters;
 }
 
 export function isHighlightsMode(state: UrlGalleryFilters): boolean {

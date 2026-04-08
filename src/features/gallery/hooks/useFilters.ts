@@ -2,7 +2,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useCallback, useMemo } from 'react';
 import {
   type UrlGalleryFilters,
-  parseUrlGalleryFilters,
+  parseFiltersFromParams,
   isHighlightsMode,
 } from '../lib/resolveGallerySearch';
 
@@ -17,8 +17,8 @@ const parsePageFromParams = (searchParams: URLSearchParams): number => {
 export const useFilters = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const urlState = useMemo(
-    () => parseUrlGalleryFilters(searchParams),
+  const currentFilters = useMemo(
+    () => parseFiltersFromParams(searchParams),
     [searchParams]
   );
 
@@ -34,7 +34,7 @@ export const useFilters = () => {
     return p.toString();
   }, [searchParams]);
 
-  const isHighlights = isHighlightsMode(urlState);
+  const isHighlights = isHighlightsMode(currentFilters);
 
   const setFilters = useCallback(
     (next: UrlGalleryFilters) => {
@@ -76,7 +76,7 @@ export const useFilters = () => {
   }, [setSearchParams]);
 
   return {
-    urlState,
+    currentFilters,
     currentPage,
     objectListFilterKey,
     isHighlights,

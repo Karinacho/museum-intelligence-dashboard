@@ -19,8 +19,13 @@ export const useGalleryPageState = (
   urlState: UrlGalleryFilters
 ): GalleryPageState => {
   const { isHighlights, currentPage, setPage } = useFilters();
-  const { data: objectIds = [], isPending, isError, error, isFetching } =
-    useGalleryObjectIds(urlState);
+  const {
+    data: objectIds = [],
+    isPending,
+    isError,
+    error,
+    isFetching,
+  } = useGalleryObjectIds(urlState);
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(objectIds.length / GALLERY_PAGE_SIZE)),

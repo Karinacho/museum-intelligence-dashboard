@@ -51,7 +51,9 @@ describe('Assessment — component logic', () => {
 
       await user.selectOptions(screen.getByLabelText(/department/i), '10');
       await user.type(screen.getByLabelText(/keyword/i), 'scarab');
-      await user.click(screen.getByRole('button', { name: /search collection/i }));
+      await user.click(
+        screen.getByRole('button', { name: /search collection/i })
+      );
 
       const search = new URLSearchParams(router.state.location.search);
       expect(search.get('dept')).toBe('10');
@@ -66,7 +68,9 @@ describe('Assessment — component logic', () => {
       );
 
       renderWithProviders(router);
-      await user.click(screen.getByRole('button', { name: /show highlights/i }));
+      await user.click(
+        screen.getByRole('button', { name: /show highlights/i })
+      );
 
       expect(router.state.location.search).toBe('');
     });
@@ -75,9 +79,7 @@ describe('Assessment — component logic', () => {
       const router = createMemoryRouter(
         [{ path: '/', element: <GalleryFiltersBar /> }],
         {
-          initialEntries: [
-            '/?dept=11&keyword=statue',
-          ],
+          initialEntries: ['/?dept=11&keyword=statue'],
         }
       );
 
@@ -98,7 +100,9 @@ describe('Assessment — component logic', () => {
 
       await user.type(screen.getByLabelText(/^from year/i), '1800');
       await user.type(screen.getByLabelText(/^to year/i), '1900');
-      await user.click(screen.getByRole('button', { name: /search collection/i }));
+      await user.click(
+        screen.getByRole('button', { name: /search collection/i })
+      );
 
       const search = new URLSearchParams(router.state.location.search);
       expect(search.get('dateBegin')).toBe('1800');
@@ -125,7 +129,9 @@ describe('Assessment — component logic', () => {
         new URLSearchParams(router.state.location.search).get('keyword')
       ).toBeNull();
 
-      await user.click(screen.getByRole('button', { name: /search collection/i }));
+      await user.click(
+        screen.getByRole('button', { name: /search collection/i })
+      );
       expect(
         new URLSearchParams(router.state.location.search).get('keyword')
       ).toBe('ab');

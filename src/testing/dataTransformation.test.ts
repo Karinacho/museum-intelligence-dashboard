@@ -14,7 +14,7 @@ import {
   effectiveMetSearchDateBounds,
   galleryObjectIdsQueryKeyPart,
   isHighlightsMode,
-  parseUrlGalleryFilters,
+  parseFiltersFromParams,
   usesDepartmentObjectList,
 } from '@/features/gallery/lib/resolveGallerySearch';
 import {
@@ -35,7 +35,7 @@ describe('Assessment — data transformation', () => {
       const p = new URLSearchParams();
       p.set('dept', '10');
       p.set('keyword', ' scarab ');
-      expect(parseUrlGalleryFilters(p)).toEqual({
+      expect(parseFiltersFromParams(p)).toEqual({
         departmentId: 10,
         keyword: ' scarab ',
       });
@@ -50,7 +50,7 @@ describe('Assessment — data transformation', () => {
     it('ignores legacy all=1 in URL (no all-departments mode)', () => {
       const p = new URLSearchParams();
       p.set('all', '1');
-      expect(parseUrlGalleryFilters(p)).toEqual({});
+      expect(parseFiltersFromParams(p)).toEqual({});
     });
 
     it('parses dateBegin and dateEnd from URL', () => {
@@ -58,7 +58,7 @@ describe('Assessment — data transformation', () => {
       p.set('dept', '11');
       p.set('dateBegin', '1800');
       p.set('dateEnd', '1900');
-      expect(parseUrlGalleryFilters(p)).toEqual({
+      expect(parseFiltersFromParams(p)).toEqual({
         departmentId: 11,
         dateBegin: 1800,
         dateEnd: 1900,
@@ -311,9 +311,7 @@ describe('Assessment — data transformation', () => {
         objectBeginDate: 1500,
         objectEndDate: 1510,
       } as MetObjectResponse;
-      expect(metObjectOverlapsMetYearWindow(outWindow, 1283, 1383)).toBe(
-        false
-      );
+      expect(metObjectOverlapsMetYearWindow(outWindow, 1283, 1383)).toBe(false);
     });
 
     it('buildRelatedWorksSearchQueryString encodes department and date window', () => {
@@ -330,6 +328,5 @@ describe('Assessment — data transformation', () => {
       expect(qs).toContain('q=*');
       expect(qs).not.toContain('dateBegin');
     });
-
   });
 });

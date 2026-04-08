@@ -1,20 +1,28 @@
-import { useFilters } from '../hooks/useFilters';
-import { useGalleryPageState } from '../hooks/useGalleryPageState';
-import GalleryFiltersBar from '../components/GalleryFiltersBar/GalleryFiltersBar.tsx';
-import PaginatedArtworkGrid from '../components/PaginatedArtworkGrid/PaginatedArtworkGrid.tsx';
-import { GalleryStatusMessages } from '../components/GalleryStatusMessages/GalleryStatusMessages';
-import { GalleryHeading } from '../components';
-import styles from './GalleryPage.module.css';
+import { useFilters, useGalleryPageState } from '../hooks';
+import {
+  GalleryHeading,
+  GalleryFiltersBar,
+  PaginatedArtworkGrid,
+  GalleryStatusMessages,
+} from '../components';
 
 const GalleryPage = () => {
-  const { urlState } = useFilters();
-  const { isHighlights, currentPage, setPage, objectIds, isPending, isError, error, isFetching } =
-    useGalleryPageState(urlState);
+  const { currentFilters } = useFilters();
+  const {
+    isHighlights,
+    currentPage,
+    setPage,
+    objectIds,
+    isPending,
+    isError,
+    error,
+    isFetching,
+  } = useGalleryPageState(currentFilters);
 
   const showGrid = !isError && (objectIds.length > 0 || isPending);
 
   return (
-    <div className={styles.page}>
+    <>
       <GalleryHeading />
       <GalleryFiltersBar />
       <GalleryStatusMessages
@@ -33,7 +41,7 @@ const GalleryPage = () => {
           idsLoading={isPending && !objectIds.length}
         />
       )}
-    </div>
+    </>
   );
 };
 

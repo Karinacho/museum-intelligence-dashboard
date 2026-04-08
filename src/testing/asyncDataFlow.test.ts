@@ -29,7 +29,10 @@ describe('Assessment — asynchronous data flow', () => {
     });
     const ids = await fetchSearchObjectIds('q=*&hasImages=true');
     expect(ids).toEqual([101, 102]);
-    expect(getSpy).toHaveBeenCalledWith('/search?q=*&hasImages=true', undefined);
+    expect(getSpy).toHaveBeenCalledWith(
+      '/search?q=*&hasImages=true',
+      undefined
+    );
   });
 
   it('fetchSearchObjectIds yields empty array when API omits objectIDs', async () => {

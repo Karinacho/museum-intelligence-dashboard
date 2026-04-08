@@ -63,7 +63,6 @@ export async function fetchGalleryObjectIdList(
   state: UrlGalleryFilters,
   signal: AbortSignal | undefined
 ): Promise<number[]> {
- 
   if (usesDepartmentObjectList(state)) {
     return fetchObjectIdsByDepartment(state.departmentId!, signal);
   }

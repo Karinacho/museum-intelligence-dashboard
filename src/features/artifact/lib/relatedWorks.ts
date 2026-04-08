@@ -27,9 +27,8 @@ export function resolveDepartmentIdByName(
 ): number | undefined {
   if (!departments?.length) return undefined;
   const t = departmentName.trim().toLowerCase();
-  return departments.find(
-    (d) => d.displayName.trim().toLowerCase() === t
-  )?.departmentId;
+  return departments.find((d) => d.displayName.trim().toLowerCase() === t)
+    ?.departmentId;
 }
 
 const isUsableSignedYear = (n: number | null | undefined): n is number =>
@@ -38,7 +37,9 @@ const isUsableSignedYear = (n: number | null | undefined): n is number =>
 /**
  * Picks a single signed Met year (negative = BCE) for period matching.
  */
-export function signedCenterYearFromArtifact(detail: ArtworkDetail): number | null {
+export function signedCenterYearFromArtifact(
+  detail: ArtworkDetail
+): number | null {
   const b = detail.objectBeginDate;
   const e = detail.objectEndDate;
   if (isUsableSignedYear(b) && isUsableSignedYear(e)) {
@@ -149,7 +150,11 @@ export async function fetchRelatedWorkIdsStrict(
   limit: number,
   signal: AbortSignal | undefined
 ): Promise<number[]> {
-  const qs = buildRelatedWorksSearchQueryString(departmentId, dateBegin, dateEnd);
+  const qs = buildRelatedWorksSearchQueryString(
+    departmentId,
+    dateBegin,
+    dateEnd
+  );
   const fromSearch = await fetchSearchObjectIds(qs, signal);
   if (fromSearch.length > 0) {
     return takeRelatedIdsExcluding(fromSearch, excludeId, limit);
@@ -224,7 +229,10 @@ export function getRelatedWorksReadiness(
   const center = signedCenterYearFromArtifact(detail);
   if (center == null) return { status: 'no-date' };
   const { dateBegin, dateEnd } = relatedWorksDateBounds(center);
-  const departmentId = resolveDepartmentIdByName(detail.department, departments);
+  const departmentId = resolveDepartmentIdByName(
+    detail.department,
+    departments
+  );
   if (departmentId == null) return { status: 'no-department' };
   return { status: 'ok', departmentId, dateBegin, dateEnd };
 }
