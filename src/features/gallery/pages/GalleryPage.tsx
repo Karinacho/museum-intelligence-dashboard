@@ -16,6 +16,9 @@ const GalleryPage = () => {
     isError,
     error,
     isFetching,
+    setFilters,
+    resetToHighlights,
+    currentFilters,
   } = useGalleryPageState();
 
   const showGrid = !isError && (objectIds.length > 0 || isPending);
@@ -23,7 +26,11 @@ const GalleryPage = () => {
   return (
     <>
       <GalleryHeading />
-      <GalleryFiltersBar />
+      <GalleryFiltersBar
+        currentFilters={currentFilters}
+        setFilters={setFilters}
+        resetToHighlights={resetToHighlights}
+      />
       <GalleryStatusMessages
         isError={isError}
         error={error}

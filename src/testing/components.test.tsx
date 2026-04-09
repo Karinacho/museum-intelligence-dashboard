@@ -14,6 +14,7 @@ import { metClient } from '@/lib/api/metMuseumClient';
 import GalleryFiltersBar from '@/features/gallery/components/GalleryFiltersBar/GalleryFiltersBar.tsx';
 import RelatedWorksGrid from '@/features/artifact/components/RelatedWorksGrid/RelatedWorksGrid';
 import { metObjectResponseMinimal } from '@/testing/fixtures/metObject';
+import { useFilters } from '@/features/gallery/hooks';
 
 vi.mock('@/features/gallery/hooks/useDepartments', () => ({
   useDepartments: () => ({
@@ -40,10 +41,21 @@ describe('Assessment — component logic', () => {
       );
     };
 
+    const GalleryFiltersBarWithUrl = () => {
+      const { currentFilters, setFilters, resetToHighlights } = useFilters();
+      return (
+        <GalleryFiltersBar
+          currentFilters={currentFilters}
+          setFilters={setFilters}
+          resetToHighlights={resetToHighlights}
+        />
+      );
+    };
+
     it('applies department and keyword to the URL on search', async () => {
       const user = userEvent.setup();
       const router = createMemoryRouter(
-        [{ path: '/', element: <GalleryFiltersBar /> }],
+        [{ path: '/', element: <GalleryFiltersBarWithUrl /> }],
         { initialEntries: ['/'] }
       );
 
@@ -63,7 +75,7 @@ describe('Assessment — component logic', () => {
     it('resets URL to highlights when requested', async () => {
       const user = userEvent.setup();
       const router = createMemoryRouter(
-        [{ path: '/', element: <GalleryFiltersBar /> }],
+        [{ path: '/', element: <GalleryFiltersBarWithUrl /> }],
         { initialEntries: ['/?keyword=old'] }
       );
 
@@ -77,7 +89,7 @@ describe('Assessment — component logic', () => {
 
     it('restores form controls from URL query params on mount', () => {
       const router = createMemoryRouter(
-        [{ path: '/', element: <GalleryFiltersBar /> }],
+        [{ path: '/', element: <GalleryFiltersBarWithUrl /> }],
         {
           initialEntries: ['/?dept=11&keyword=statue'],
         }
@@ -92,7 +104,7 @@ describe('Assessment — component logic', () => {
     it('applies date range to the URL on search', async () => {
       const user = userEvent.setup();
       const router = createMemoryRouter(
-        [{ path: '/', element: <GalleryFiltersBar /> }],
+        [{ path: '/', element: <GalleryFiltersBarWithUrl /> }],
         { initialEntries: ['/'] }
       );
 
@@ -113,7 +125,7 @@ describe('Assessment — component logic', () => {
     it('does not write keyword to the URL until Search collection', async () => {
       const user = userEvent.setup();
       const router = createMemoryRouter(
-        [{ path: '/', element: <GalleryFiltersBar /> }],
+        [{ path: '/', element: <GalleryFiltersBarWithUrl /> }],
         { initialEntries: ['/'] }
       );
 

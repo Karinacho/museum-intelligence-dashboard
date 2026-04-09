@@ -1,3 +1,4 @@
+import type { UrlGalleryFilters } from '../types';
 /**
  * URL ↔ Met /search query mapping (pure helpers for tests and hooks).
  */
@@ -5,14 +6,6 @@
 /** Open range bound sent to Met when the user supplies only one year (API expects a range). */
 const MET_SEARCH_DATE_BEGIN_OPEN = -8000;
 const MET_SEARCH_DATE_END_OPEN = 2030;
-
-export type UrlGalleryFilters = {
-  departmentId?: number;
-  keyword?: string;
-  /** Object begin/end year (CE; negative for BCE), passed to Met `dateBegin` / `dateEnd`. */
-  dateBegin?: number;
-  dateEnd?: number;
-};
 
 function parseIntParam(
   searchParams: URLSearchParams,
@@ -50,7 +43,7 @@ export function parseFiltersFromParams(
 
     if (!Number.isNaN(n)) {
       parsedFilters.departmentId = n;
-    } 
+    }
   }
 
   const kw = searchParams.get('keyword');
@@ -92,10 +85,10 @@ export function effectiveMetSearchDateBounds(
 
   if (begin === undefined && end === undefined) {
     return null;
-  } 
+  }
   if (begin !== undefined && end !== undefined) {
     return { dateBegin: begin, dateEnd: end };
-  } 
+  }
   if (begin !== undefined) {
     return { dateBegin: begin, dateEnd: MET_SEARCH_DATE_END_OPEN };
   }
@@ -106,17 +99,20 @@ export function effectiveMetSearchDateBounds(
  * Use `/objects?departmentIds=X` for the ID list (complete for that department)
  * when there is no keyword and no date filter.
  */
-export function isDepartmentOnlyFilter(currentFilters: UrlGalleryFilters): boolean {
+export function isDepartmentOnlyFilter(
+  currentFilters: UrlGalleryFilters
+): boolean {
   return (
     currentFilters.departmentId !== undefined &&
-    (currentFilters.keyword === undefined || currentFilters.keyword.trim() === '') &&
+    (currentFilters.keyword === undefined ||
+      currentFilters.keyword.trim() === '') &&
     currentFilters.dateBegin === undefined &&
     currentFilters.dateEnd === undefined
   );
 }
 
 /** Normalized slice of filters for TanStack Query cache keys (matches fetch semantics). */
-export type GalleryObjectIdsKeyPart = {
+type GalleryObjectIdsKeyPart = {
   departmentId?: number;
   keyword?: string;
   dateBegin?: number;
@@ -138,7 +134,9 @@ export function galleryObjectIdsQueryKeyPart(
 export const galleryObjectIdsQueryKey = (state: UrlGalleryFilters) =>
   ['gallery-object-ids', galleryObjectIdsQueryKeyPart(state)] as const;
 
-export function buildMetSearchQueryString(currentFilters: UrlGalleryFilters): string {
+export function buildMetSearchQueryString(
+  currentFilters: UrlGalleryFilters
+): string {
   const params = new URLSearchParams();
 
   const dates = effectiveMetSearchDateBounds(currentFilters);
@@ -151,7 +149,10 @@ export function buildMetSearchQueryString(currentFilters: UrlGalleryFilters): st
     params.set('departmentId', String(currentFilters.departmentId));
   }
 
-  params.set('q', currentFilters.keyword?.trim() ? currentFilters.keyword.trim() : '*');
+  params.set(
+    'q',
+    currentFilters.keyword?.trim() ? currentFilters.keyword.trim() : '*'
+  );
 
   if (isHighlightsMode(currentFilters)) {
     params.set('isHighlight', 'true');

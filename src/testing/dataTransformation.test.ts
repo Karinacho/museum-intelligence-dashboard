@@ -73,9 +73,9 @@ describe('Assessment — data transformation', () => {
 
     it('uses full department ID list when department is set without keyword or dates', () => {
       expect(isDepartmentOnlyFilter({ departmentId: 9 })).toBe(true);
-      expect(
-        isDepartmentOnlyFilter({ departmentId: 9, keyword: 'ink' })
-      ).toBe(false);
+      expect(isDepartmentOnlyFilter({ departmentId: 9, keyword: 'ink' })).toBe(
+        false
+      );
       expect(isDepartmentOnlyFilter({ keyword: 'vase' })).toBe(false);
       expect(
         isDepartmentOnlyFilter({

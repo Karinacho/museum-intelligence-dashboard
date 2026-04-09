@@ -1,7 +1,8 @@
 import { useMemo, useEffect } from 'react';
 import { useFilters } from './useFilters';
 import { useGalleryObjectIdsQuery } from './useGalleryObjectIdsQuery.ts';
-import { GALLERY_PAGE_SIZE } from '../components/PaginatedArtworkGrid/PaginatedArtworkGrid.tsx';
+import { GALLERY_PAGE_SIZE } from '../lib/constants.ts';
+import type { UrlGalleryFilters } from '../types';
 
 export type GalleryPageState = {
   isHighlights: boolean;
@@ -12,10 +13,20 @@ export type GalleryPageState = {
   isError: boolean;
   error: Error | null;
   isFetching: boolean;
+  setFilters: (filters: UrlGalleryFilters) => void;
+  resetToHighlights: () => void;
+  currentFilters: UrlGalleryFilters;
 };
 
 export const useGalleryPageState = (): GalleryPageState => {
-  const { isHighlights, currentPage, setPage, currentFilters } = useFilters();
+  const {
+    isHighlights,
+    currentPage,
+    setPage,
+    currentFilters,
+    setFilters,
+    resetToHighlights,
+  } = useFilters();
   const {
     data: objectIds = [],
     isPending,
@@ -29,6 +40,7 @@ export const useGalleryPageState = (): GalleryPageState => {
     [objectIds.length]
   );
 
+  //if the current page is greater than the total pages, set the page to the total pages
   useEffect(() => {
     if (objectIds.length > 0 && currentPage > totalPages) {
       setPage(totalPages);
@@ -48,5 +60,8 @@ export const useGalleryPageState = (): GalleryPageState => {
     isError,
     error: error ?? null,
     isFetching,
+    setFilters,
+    resetToHighlights,
+    currentFilters,
   };
 };

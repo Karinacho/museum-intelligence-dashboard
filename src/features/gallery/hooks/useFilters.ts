@@ -1,11 +1,11 @@
 import { useSearchParams } from 'react-router-dom';
 import { useCallback, useMemo } from 'react';
 import {
-  type UrlGalleryFilters,
   parseFiltersFromParams,
   isHighlightsMode,
   parsePageFromParams,
 } from '../lib/resolveGallerySearch';
+import type { UrlGalleryFilters } from '../types';
 
 export const useFilters = () => {
   const [searchParams, setSearchParams] = useSearchParams();

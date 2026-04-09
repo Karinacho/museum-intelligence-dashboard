@@ -6,6 +6,7 @@ import { Card, CardSkeleton } from '@/components/ui';
 import Grid from '@/components/layout/Grid/Grid.tsx';
 import { fetchObjectById } from '../../api/galleryApi.ts';
 import { metObjectQueryKey } from '@/lib/api/metObjectQueryKey.ts';
+import { GALLERY_PAGE_SIZE } from '../../lib/constants.ts';
 import {
   isRateLimitApiError,
   metObjectQueryDefaults,
@@ -16,9 +17,7 @@ import {
 } from '@/lib/models/artwork.ts';
 import styles from './PaginatedArtworkGrid.module.css';
 
-export const GALLERY_PAGE_SIZE = 20;
-
-export type PaginatedArtworkGridProps = {
+type PaginatedArtworkGridProps = {
   objectIds: number[];
   page: number;
   onPageChange: (page: number) => void;

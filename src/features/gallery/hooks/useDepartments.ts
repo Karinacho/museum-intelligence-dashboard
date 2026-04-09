@@ -6,7 +6,6 @@ export const useDepartments = () => {
     queryKey: ['met-departments'],
     queryFn: fetchDepartments,
     staleTime: Number.POSITIVE_INFINITY,
-    gcTime: Number.POSITIVE_INFINITY,
-    refetchOnWindowFocus: false,
+    gcTime: Number.POSITIVE_INFINITY
   });
 };

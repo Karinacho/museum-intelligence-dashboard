@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { type MetDepartment } from '@/features/gallery/api/galleryApi';
+import type { MetDepartment } from '@/features/gallery/types';
 import type { ArtworkDetail } from '@/lib/models/artwork';
 import {
   fetchRelatedWorkIdsStrict,

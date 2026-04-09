@@ -2,7 +2,6 @@ import { metClient } from '@/lib/api/metMuseumClient';
 import {
   buildMetSearchQueryString,
   isDepartmentOnlyFilter,
-  type UrlGalleryFilters,
 } from '@/features/gallery/lib/resolveGallerySearch';
 import {
   type MetObjectsResponse,
@@ -10,11 +9,7 @@ import {
   type ArtworkCard,
   transformArtwork,
 } from '@/lib/models/artwork';
-
-export type MetDepartment = {
-  departmentId: number;
-  displayName: string;
-};
+import type { UrlGalleryFilters, MetDepartment } from '../types';
 
 export const fetchDepartments = async (): Promise<MetDepartment[]> => {
   const response = await metClient.get<{ departments: MetDepartment[] }>(
@@ -23,13 +18,6 @@ export const fetchDepartments = async (): Promise<MetDepartment[]> => {
   return response.departments ?? [];
 };
 
-/**
- * Full collection ID list (~470k) — avoid for gallery; kept for legacy hooks.
- */
-export const fetchAllObjectIds = async (): Promise<number[]> => {
-  const response = await metClient.get<MetObjectsResponse>('/objects');
-  return response.objectIDs ?? [];
-};
 
 export const fetchObjectIdsByDepartment = async (
   departmentId: number,
@@ -67,7 +55,10 @@ export async function fetchGalleryObjectIdList(
     return fetchObjectIdsByDepartment(currentFilters.departmentId!, signal);
   }
 
-  return fetchSearchObjectIds(buildMetSearchQueryString(currentFilters), signal);
+  return fetchSearchObjectIds(
+    buildMetSearchQueryString(currentFilters),
+    signal
+  );
 }
 
 export const fetchObjectById = async (
