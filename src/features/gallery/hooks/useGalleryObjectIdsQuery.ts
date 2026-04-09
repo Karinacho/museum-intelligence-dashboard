@@ -6,13 +6,12 @@ import {
 } from '../lib/resolveGallerySearch';
 
 /**
- * Met `/search` or `/objects` ID list for the current filters (5 min stale).
+ * Met `/search` or `/objects` ID list for the current filters.
  * `placeholderData: keepPreviousData` keeps the grid populated while filters change.
  */
-export const useGalleryObjectIds = (state: UrlGalleryFilters) => {
+export const useGalleryObjectIdsQuery = (currentFilters: UrlGalleryFilters) => {
   return useQuery<number[], Error>({
-    queryKey: galleryObjectIdsQueryKey(state),
-    queryFn: ({ signal }) => fetchGalleryObjectIdList(state, signal),
-    refetchOnWindowFocus: false,
+    queryKey: galleryObjectIdsQueryKey(currentFilters),
+    queryFn: ({ signal }) => fetchGalleryObjectIdList(currentFilters, signal)
   });
 };

@@ -4,15 +4,8 @@ import {
   type UrlGalleryFilters,
   parseFiltersFromParams,
   isHighlightsMode,
+  parsePageFromParams,
 } from '../lib/resolveGallerySearch';
-
-const parsePageFromParams = (searchParams: URLSearchParams): number => {
-  const raw = searchParams.get('page');
-  if (raw === null || raw === '') return 1;
-  const n = Number.parseInt(raw, 10);
-  if (Number.isNaN(n) || n < 1) return 1;
-  return n;
-};
 
 export const useFilters = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -26,13 +19,6 @@ export const useFilters = () => {
     () => parsePageFromParams(searchParams),
     [searchParams]
   );
-
-  /** Filters only (excludes `page`) — stable key for object-ID list queries. */
-  const objectListFilterKey = useMemo(() => {
-    const p = new URLSearchParams(searchParams);
-    p.delete('page');
-    return p.toString();
-  }, [searchParams]);
 
   const isHighlights = isHighlightsMode(currentFilters);
 
@@ -78,7 +64,6 @@ export const useFilters = () => {
   return {
     currentFilters,
     currentPage,
-    objectListFilterKey,
     isHighlights,
     setFilters,
     setPage,

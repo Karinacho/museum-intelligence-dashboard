@@ -1,4 +1,4 @@
-import { useFilters, useGalleryPageState } from '../hooks';
+import { useGalleryPageState } from '../hooks';
 import {
   GalleryHeading,
   GalleryFiltersBar,
@@ -7,7 +7,6 @@ import {
 } from '../components';
 
 const GalleryPage = () => {
-  const { currentFilters } = useFilters();
   const {
     isHighlights,
     currentPage,
@@ -17,7 +16,7 @@ const GalleryPage = () => {
     isError,
     error,
     isFetching,
-  } = useGalleryPageState(currentFilters);
+  } = useGalleryPageState();
 
   const showGrid = !isError && (objectIds.length > 0 || isPending);
 

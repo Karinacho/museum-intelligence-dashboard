@@ -24,6 +24,20 @@ function parseIntParam(
   return Number.isNaN(n) ? undefined : n;
 }
 
+export const parsePageFromParams = (searchParams: URLSearchParams): number => {
+  const pageParam = searchParams.get('page');
+
+  if (pageParam === null || pageParam === '') {
+    return 1;
+  }
+
+  const parsedPage = Number.parseInt(pageParam, 10);
+  if (Number.isNaN(parsedPage) || parsedPage < 1) {
+    return 1;
+  }
+  return parsedPage;
+};
+
 export function parseFiltersFromParams(
   searchParams: URLSearchParams
 ): UrlGalleryFilters {
@@ -71,28 +85,33 @@ export function isHighlightsMode(state: UrlGalleryFilters): boolean {
  * (single-sided ranges are expanded to a full interval).
  */
 export function effectiveMetSearchDateBounds(
-  state: UrlGalleryFilters
+  currentFilters: UrlGalleryFilters
 ): { dateBegin: number; dateEnd: number } | null {
-  const b = state.dateBegin;
-  const e = state.dateEnd;
-  if (b === undefined && e === undefined) return null;
-  if (b !== undefined && e !== undefined) return { dateBegin: b, dateEnd: e };
-  if (b !== undefined) {
-    return { dateBegin: b, dateEnd: MET_SEARCH_DATE_END_OPEN };
+  const begin = currentFilters.dateBegin;
+  const end = currentFilters.dateEnd;
+
+  if (begin === undefined && end === undefined) {
+    return null;
+  } 
+  if (begin !== undefined && end !== undefined) {
+    return { dateBegin: begin, dateEnd: end };
+  } 
+  if (begin !== undefined) {
+    return { dateBegin: begin, dateEnd: MET_SEARCH_DATE_END_OPEN };
   }
-  return { dateBegin: MET_SEARCH_DATE_BEGIN_OPEN, dateEnd: e! };
+  return { dateBegin: MET_SEARCH_DATE_BEGIN_OPEN, dateEnd: end! };
 }
 
 /**
  * Use `/objects?departmentIds=X` for the ID list (complete for that department)
  * when there is no keyword and no date filter.
  */
-export function usesDepartmentObjectList(state: UrlGalleryFilters): boolean {
+export function isDepartmentOnlyFilter(currentFilters: UrlGalleryFilters): boolean {
   return (
-    state.departmentId !== undefined &&
-    (state.keyword === undefined || state.keyword.trim() === '') &&
-    state.dateBegin === undefined &&
-    state.dateEnd === undefined
+    currentFilters.departmentId !== undefined &&
+    (currentFilters.keyword === undefined || currentFilters.keyword.trim() === '') &&
+    currentFilters.dateBegin === undefined &&
+    currentFilters.dateEnd === undefined
   );
 }
 
@@ -119,22 +138,22 @@ export function galleryObjectIdsQueryKeyPart(
 export const galleryObjectIdsQueryKey = (state: UrlGalleryFilters) =>
   ['gallery-object-ids', galleryObjectIdsQueryKeyPart(state)] as const;
 
-export function buildMetSearchQueryString(state: UrlGalleryFilters): string {
+export function buildMetSearchQueryString(currentFilters: UrlGalleryFilters): string {
   const params = new URLSearchParams();
 
-  const dates = effectiveMetSearchDateBounds(state);
+  const dates = effectiveMetSearchDateBounds(currentFilters);
 
   if (dates) {
     params.set('dateBegin', String(dates.dateBegin));
     params.set('dateEnd', String(dates.dateEnd));
   }
-  if (state.departmentId !== undefined) {
-    params.set('departmentId', String(state.departmentId));
+  if (currentFilters.departmentId !== undefined) {
+    params.set('departmentId', String(currentFilters.departmentId));
   }
 
-  params.set('q', state.keyword?.trim() ? state.keyword.trim() : '*');
+  params.set('q', currentFilters.keyword?.trim() ? currentFilters.keyword.trim() : '*');
 
-  if (isHighlightsMode(state)) {
+  if (isHighlightsMode(currentFilters)) {
     params.set('isHighlight', 'true');
   }
 

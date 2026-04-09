@@ -1,7 +1,6 @@
 import { useMemo, useEffect } from 'react';
-import type { UrlGalleryFilters } from '../lib/resolveGallerySearch';
 import { useFilters } from './useFilters';
-import { useGalleryObjectIds } from './useGalleryObjectIds';
+import { useGalleryObjectIdsQuery } from './useGalleryObjectIdsQuery.ts';
 import { GALLERY_PAGE_SIZE } from '../components/PaginatedArtworkGrid/PaginatedArtworkGrid.tsx';
 
 export type GalleryPageState = {
@@ -15,17 +14,15 @@ export type GalleryPageState = {
   isFetching: boolean;
 };
 
-export const useGalleryPageState = (
-  urlState: UrlGalleryFilters
-): GalleryPageState => {
-  const { isHighlights, currentPage, setPage } = useFilters();
+export const useGalleryPageState = (): GalleryPageState => {
+  const { isHighlights, currentPage, setPage, currentFilters } = useFilters();
   const {
     data: objectIds = [],
     isPending,
     isError,
     error,
     isFetching,
-  } = useGalleryObjectIds(urlState);
+  } = useGalleryObjectIdsQuery(currentFilters);
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(objectIds.length / GALLERY_PAGE_SIZE)),

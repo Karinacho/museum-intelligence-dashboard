@@ -1,7 +1,7 @@
 import { metClient } from '@/lib/api/metMuseumClient';
 import {
   buildMetSearchQueryString,
-  usesDepartmentObjectList,
+  isDepartmentOnlyFilter,
   type UrlGalleryFilters,
 } from '@/features/gallery/lib/resolveGallerySearch';
 import {
@@ -60,14 +60,14 @@ export const fetchSearchObjectIds = async (
  * `/search` returns a bounded `objectIDs` list for those queries (API behavior).
  */
 export async function fetchGalleryObjectIdList(
-  state: UrlGalleryFilters,
+  currentFilters: UrlGalleryFilters,
   signal: AbortSignal | undefined
 ): Promise<number[]> {
-  if (usesDepartmentObjectList(state)) {
-    return fetchObjectIdsByDepartment(state.departmentId!, signal);
+  if (isDepartmentOnlyFilter(currentFilters)) {
+    return fetchObjectIdsByDepartment(currentFilters.departmentId!, signal);
   }
 
-  return fetchSearchObjectIds(buildMetSearchQueryString(state), signal);
+  return fetchSearchObjectIds(buildMetSearchQueryString(currentFilters), signal);
 }
 
 export const fetchObjectById = async (

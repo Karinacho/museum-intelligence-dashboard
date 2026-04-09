@@ -15,7 +15,7 @@ import {
   galleryObjectIdsQueryKeyPart,
   isHighlightsMode,
   parseFiltersFromParams,
-  usesDepartmentObjectList,
+  isDepartmentOnlyFilter,
 } from '@/features/gallery/lib/resolveGallerySearch';
 import {
   buildRelatedWorksDepartmentSearchQueryString,
@@ -72,13 +72,13 @@ describe('Assessment — data transformation', () => {
     });
 
     it('uses full department ID list when department is set without keyword or dates', () => {
-      expect(usesDepartmentObjectList({ departmentId: 9 })).toBe(true);
+      expect(isDepartmentOnlyFilter({ departmentId: 9 })).toBe(true);
       expect(
-        usesDepartmentObjectList({ departmentId: 9, keyword: 'ink' })
+        isDepartmentOnlyFilter({ departmentId: 9, keyword: 'ink' })
       ).toBe(false);
-      expect(usesDepartmentObjectList({ keyword: 'vase' })).toBe(false);
+      expect(isDepartmentOnlyFilter({ keyword: 'vase' })).toBe(false);
       expect(
-        usesDepartmentObjectList({
+        isDepartmentOnlyFilter({
           departmentId: 9,
           dateBegin: 1800,
           dateEnd: 1900,
