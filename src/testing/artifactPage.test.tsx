@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import type { ArtworkDetail } from '@/lib/models/artwork';
+import type { RelatedWorksReadiness } from '@/features/artifact/lib/relatedWorks';
 import ArtifactPage from '@/features/artifact/pages/ArtifactPage';
 
 type ArtifactHookState = {
@@ -17,6 +18,7 @@ type RelatedIdsHookState = {
   data: number[];
   isPending: boolean;
   isError: boolean;
+  readiness: RelatedWorksReadiness;
 };
 
 let artifactHookState: ArtifactHookState;
@@ -99,6 +101,12 @@ describe('Assessment — artifact detail page', () => {
       data: [201, 202],
       isPending: false,
       isError: false,
+      readiness: {
+        status: 'ok',
+        departmentId: 11,
+        dateBegin: 1888,
+        dateEnd: 1892,
+      },
     };
     departmentsLoading = false;
 
@@ -132,7 +140,12 @@ describe('Assessment — artifact detail page', () => {
       error: null,
       refetch: refetchSpy,
     };
-    relatedIdsHookState = { data: [], isPending: false, isError: false };
+    relatedIdsHookState = {
+      data: [],
+      isPending: false,
+      isError: false,
+      readiness: { status: 'no-date' },
+    };
     departmentsLoading = false;
 
     renderArtifactRoute();

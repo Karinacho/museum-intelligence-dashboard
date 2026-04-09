@@ -1,3 +1,19 @@
+import { transformArtwork } from '@/lib/models/artwork';
+import type { MetObjectResponse } from '@/lib/models/artwork';
+
+export type PaginatedArtworkGridProps = {
+  objectIds: number[];
+  page: number;
+  onPageChange: (page: number) => void;
+  /** True while the object-ID list query is pending and empty — show skeleton grid only. */
+  idsLoading?: boolean;
+};
+
+export type PageQueryData = {
+  raw: MetObjectResponse;
+  artwork: ReturnType<typeof transformArtwork>;
+};
+
 export type MetDepartment = {
   departmentId: number;
   displayName: string;

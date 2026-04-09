@@ -18,7 +18,6 @@ export const fetchDepartments = async (): Promise<MetDepartment[]> => {
   return response.departments ?? [];
 };
 
-
 export const fetchObjectIdsByDepartment = async (
   departmentId: number,
   signal?: AbortSignal

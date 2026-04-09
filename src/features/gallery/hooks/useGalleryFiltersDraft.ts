@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { buildFiltersFromDraft } from '../lib/buildFiltersFromDraft';
+import { parseFiltersFromDraft } from '../lib/parseFiltersFromDraft';
 import type { UrlGalleryFilters } from '../types';
 
 export function useGalleryFiltersDraft(
@@ -11,6 +11,7 @@ export function useGalleryFiltersDraft(
       ? String(currentFilters.departmentId)
       : ''
   );
+
   const [keyword, setKeyword] = useState(() => currentFilters.keyword ?? '');
   const [dateBeginInput, setDateBeginInput] = useState(() =>
     currentFilters.dateBegin != null ? String(currentFilters.dateBegin) : ''
@@ -19,9 +20,9 @@ export function useGalleryFiltersDraft(
     currentFilters.dateEnd != null ? String(currentFilters.dateEnd) : ''
   );
 
-  const commitSearch = useCallback(() => {
+  const applyFilters = useCallback(() => {
     setFilters(
-      buildFiltersFromDraft({
+      parseFiltersFromDraft({
         departmentId,
         keyword,
         dateBeginInput,
@@ -61,6 +62,6 @@ export function useGalleryFiltersDraft(
     setDateBeginInput,
     dateEndInput,
     setDateEndInput,
-    commitSearch,
+    applyFilters,
   };
 }

@@ -32,7 +32,7 @@ export const useRelatedWorkIds = ({
   const dateBegin = readiness.status === 'ok' ? readiness.dateBegin : null;
   const dateEnd = readiness.status === 'ok' ? readiness.dateEnd : null;
 
-  return useQuery({
+  const query = useQuery({
     queryKey: [
       'related-work-ids',
       artifactId,
@@ -65,4 +65,6 @@ export const useRelatedWorkIds = ({
     refetchOnWindowFocus: false,
     retry: 1,
   });
+
+  return { readiness, ...query };
 };

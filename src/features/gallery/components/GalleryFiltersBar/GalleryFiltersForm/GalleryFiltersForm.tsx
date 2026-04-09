@@ -23,7 +23,7 @@ const GalleryFiltersForm = ({
     setDateBeginInput,
     dateEndInput,
     setDateEndInput,
-    commitSearch,
+    applyFilters,
   } = useGalleryFiltersDraft(currentFilters, setFilters);
 
   return (
@@ -38,7 +38,7 @@ const GalleryFiltersForm = ({
         <KeywordField
           value={keyword}
           onChange={setKeyword}
-          onSubmit={commitSearch}
+          onSubmit={applyFilters}
         />
       </div>
       <DateRangeField
@@ -46,10 +46,10 @@ const GalleryFiltersForm = ({
         dateEndInput={dateEndInput}
         onDateBeginChange={setDateBeginInput}
         onDateEndChange={setDateEndInput}
-        onSubmit={commitSearch}
+        onSubmit={applyFilters}
       />
       <FiltersActions
-        onSearch={commitSearch}
+        onSearch={applyFilters}
         onReset={resetToHighlights}
         searchDisabled={departmentsLoading}
       />

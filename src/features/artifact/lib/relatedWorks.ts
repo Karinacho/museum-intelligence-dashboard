@@ -1,5 +1,5 @@
 import type { ArtworkDetail, MetObjectResponse } from '@/lib/models/artwork';
-import type { MetDepartment } from '@/features/gallery/api/galleryApi';
+import type { MetDepartment } from '@/features/gallery/types';
 import {
   fetchObjectById,
   fetchObjectIdsByDepartment,
