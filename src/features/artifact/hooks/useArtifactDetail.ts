@@ -15,7 +15,7 @@ export const useArtifactDetail = (objectId: number | undefined) => {
     select: (raw: MetObjectResponse) => toArtworkDetail(raw),
     enabled: valid,
     staleTime: Number.POSITIVE_INFINITY,
-    gcTime: 1000 * 60 * 30,
+    // gcTime: 1000 * 60 * 30,
     retry: 1,
   });
 };

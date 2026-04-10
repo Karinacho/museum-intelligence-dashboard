@@ -41,7 +41,7 @@ const GalleryPage = () => {
       {showGrid && (
         <PaginatedArtworkGrid
           objectIds={objectIds}
-          page={currentPage}
+          currentPage={currentPage}
           onPageChange={setPage}
           idsLoading={isPending && !objectIds.length}
         />

@@ -1,7 +1,7 @@
-import { useMemo, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useFilters } from './useFilters';
 import { useGalleryObjectIdsQuery } from './useGalleryObjectIdsQuery.ts';
-import { GALLERY_PAGE_SIZE } from '../lib/constants.ts';
+import { galleryTotalPages } from '../lib/galleryPagination';
 import type { UrlGalleryFilters } from '../types';
 
 export type GalleryPageState = {
@@ -27,7 +27,7 @@ export const useGalleryPageState = (): GalleryPageState => {
     setFilters,
     resetToHighlights,
   } = useFilters();
-  
+
   const {
     data: objectIds = [],
     isPending,
@@ -36,12 +36,8 @@ export const useGalleryPageState = (): GalleryPageState => {
     isFetching,
   } = useGalleryObjectIdsQuery(currentFilters);
 
-  const totalPages = useMemo(
-    () => Math.max(1, Math.ceil(objectIds.length / GALLERY_PAGE_SIZE)),
-    [objectIds.length]
-  );
+  const totalPages = galleryTotalPages(objectIds.length);
 
-  //if the current page is greater than the total pages, set the page to the total pages
   useEffect(() => {
     if (objectIds.length > 0 && currentPage > totalPages) {
       setPage(totalPages);

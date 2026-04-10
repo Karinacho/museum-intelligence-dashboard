@@ -3,7 +3,7 @@ import type { MetObjectResponse } from '@/lib/models/artwork';
 
 export type PaginatedArtworkGridProps = {
   objectIds: number[];
-  page: number;
+  currentPage: number;
   onPageChange: (page: number) => void;
   /** True while the object-ID list query is pending and empty — show skeleton grid only. */
   idsLoading?: boolean;

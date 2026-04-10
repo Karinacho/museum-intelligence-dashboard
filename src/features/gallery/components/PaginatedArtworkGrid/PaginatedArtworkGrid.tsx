@@ -1,24 +1,20 @@
 import Grid from '@/components/layout/Grid/Grid.tsx';
 import type { PaginatedArtworkGridProps } from '../../types';
 import { useGalleryPagination } from '../../hooks/useGalleryPagination';
-import { useGalleryRateLimitBanner } from '../../hooks/useGalleryRateLimitBanner';
 import { usePrefetchGalleryNextPage } from '../../hooks/usePrefetchGalleryNextPage';
 import { GalleryArtworkSlot } from '../GalleryArtworkSlot/GalleryArtworkSlot';
 import { GalleryArtworkGridLoading } from './GalleryArtworkGridLoading';
 import { GalleryPaginationNav } from './GalleryPaginationNav';
-import { GalleryRateLimitBanner } from './GalleryRateLimitBanner';
 import styles from './PaginatedArtworkGrid.module.css';
 
 const PaginatedArtworkGrid = ({
   objectIds,
-  page,
+  currentPage,
   onPageChange,
   idsLoading = false,
 }: PaginatedArtworkGridProps) => {
   const { galleryLocation, safePage, pageIds, hasNextPage, nextPageIds } =
-    useGalleryPagination(objectIds, page);
-
-  const showRateBanner = useGalleryRateLimitBanner(pageIds, idsLoading);
+    useGalleryPagination(objectIds, currentPage);
   usePrefetchGalleryNextPage(nextPageIds, idsLoading);
 
   if (idsLoading) {
@@ -27,7 +23,6 @@ const PaginatedArtworkGrid = ({
 
   return (
     <div className={styles.wrap}>
-      {showRateBanner ? <GalleryRateLimitBanner /> : null}
       <Grid>
         {pageIds.map((id) => (
           <GalleryArtworkSlot

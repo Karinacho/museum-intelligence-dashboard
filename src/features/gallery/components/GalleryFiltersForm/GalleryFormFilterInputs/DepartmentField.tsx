@@ -5,15 +5,14 @@ type DepartmentFieldProps = {
   value: string;
   onChange: (value: string) => void;
   departments: MetDepartment[] | undefined;
-  disabled: boolean;
 };
 
 export function DepartmentField({
   value,
   onChange,
   departments,
-  disabled,
 }: DepartmentFieldProps) {
+  console.log(departments);
   return (
     <div className={styles.field}>
       <label className={styles.label} htmlFor="gallery-dept">
@@ -23,7 +22,6 @@ export function DepartmentField({
         id="gallery-dept"
         className={styles.select}
         value={value}
-        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
       >
         <option value="">Highlights</option>
