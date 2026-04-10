@@ -5,7 +5,6 @@ import type { UrlGalleryFilters } from '../types';
 
 /**
  * Met `/search` or `/objects` ID list for the current filters.
- * `placeholderData: keepPreviousData` keeps the grid populated while filters change.
  */
 export const useGalleryObjectIdsQuery = (currentFilters: UrlGalleryFilters) => {
   return useQuery<number[], Error>({

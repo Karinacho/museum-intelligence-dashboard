@@ -27,6 +27,7 @@ export const useGalleryPageState = (): GalleryPageState => {
     setFilters,
     resetToHighlights,
   } = useFilters();
+  
   const {
     data: objectIds = [],
     isPending,
