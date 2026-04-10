@@ -95,22 +95,6 @@ export function effectiveMetSearchDateBounds(
   return { dateBegin: MET_SEARCH_DATE_BEGIN_OPEN, dateEnd: end! };
 }
 
-/**
- * Use `/objects?departmentIds=X` for the ID list (complete for that department)
- * when there is no keyword and no date filter.
- */
-export function isDepartmentOnlyFilter(
-  currentFilters: UrlGalleryFilters
-): boolean {
-  return (
-    currentFilters.departmentId !== undefined &&
-    (currentFilters.keyword === undefined ||
-      currentFilters.keyword.trim() === '') &&
-    currentFilters.dateBegin === undefined &&
-    currentFilters.dateEnd === undefined
-  );
-}
-
 /** Normalized slice of filters for TanStack Query cache keys (matches fetch semantics). */
 type GalleryObjectIdsKeyPart = {
   departmentId?: number;

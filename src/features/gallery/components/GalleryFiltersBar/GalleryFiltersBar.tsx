@@ -1,4 +1,3 @@
-import { useDepartments } from '@/features/gallery/hooks';
 import type { FiltersBarProps } from '../../types';
 import GalleryFiltersForm from './GalleryFiltersForm/GalleryFiltersForm';
 const GalleryFiltersBar = ({
@@ -6,13 +5,10 @@ const GalleryFiltersBar = ({
   setFilters,
   resetToHighlights,
 }: FiltersBarProps) => {
-  const { data: departments, isPending: departmentsLoading } = useDepartments();
 
   return (
     <GalleryFiltersForm
       currentFilters={currentFilters}
-      departments={departments}
-      departmentsLoading={departmentsLoading}
       setFilters={setFilters}
       resetToHighlights={resetToHighlights}
     />

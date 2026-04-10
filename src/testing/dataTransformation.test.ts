@@ -15,7 +15,6 @@ import {
   galleryObjectIdsQueryKeyPart,
   isHighlightsMode,
   parseFiltersFromParams,
-  isDepartmentOnlyFilter,
 } from '@/features/gallery/lib/resolveGallerySearch';
 import {
   buildRelatedWorksDepartmentSearchQueryString,
@@ -71,19 +70,13 @@ describe('Assessment — data transformation', () => {
       expect(qs).toContain('q=*');
     });
 
-    it('uses full department ID list when department is set without keyword or dates', () => {
-      expect(isDepartmentOnlyFilter({ departmentId: 9 })).toBe(true);
-      expect(isDepartmentOnlyFilter({ departmentId: 9, keyword: 'ink' })).toBe(
-        false
-      );
-      expect(isDepartmentOnlyFilter({ keyword: 'vase' })).toBe(false);
-      expect(
-        isDepartmentOnlyFilter({
-          departmentId: 9,
-          dateBegin: 1800,
-          dateEnd: 1900,
-        })
-      ).toBe(false);
+    it('builds search query for department-only filters', () => {
+      const qs = buildMetSearchQueryString({ departmentId: 9 });
+      expect(qs).toContain('departmentId=9');
+      expect(qs).toContain('q=*');
+      expect(qs).not.toContain('dateBegin');
+      expect(qs).not.toContain('dateEnd');
+      expect(qs).not.toContain('isHighlight=true');
     });
 
     it('builds Met query string with filters', () => {

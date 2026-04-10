@@ -1,5 +1,5 @@
-import type { FiltersFormProps } from '../../../types';
-
+import type { FiltersBarProps } from '../../../types';
+import { useDepartments } from '../../../hooks';
 import styles from './GalleryFiltersForm.module.css';
 import { useGalleryFiltersDraft } from '../../../hooks';
 import { DateRangeField } from './DateRangeField';
@@ -9,11 +9,10 @@ import { KeywordField } from './KeywordField';
 
 const GalleryFiltersForm = ({
   currentFilters,
-  departments,
-  departmentsLoading,
   setFilters,
   resetToHighlights,
-}: FiltersFormProps) => {
+}: FiltersBarProps) => {
+  const { data: departments, isPending: departmentsLoading } = useDepartments();
   const {
     departmentId,
     setDepartmentId,

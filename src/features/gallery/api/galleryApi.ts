@@ -1,8 +1,5 @@
 import { metClient } from '@/lib/api/metMuseumClient';
-import {
-  buildMetSearchQueryString,
-  isDepartmentOnlyFilter,
-} from '@/features/gallery/lib/resolveGallerySearch';
+import { buildMetSearchQueryString } from '@/features/gallery/lib/resolveGallerySearch';
 import {
   type MetObjectsResponse,
   type MetObjectResponse,
@@ -42,18 +39,13 @@ export const fetchSearchObjectIds = async (
 
 /**
  * Resolves gallery object IDs for the current URL filters.
- * Uses `/objects?departmentIds=` only for plain department browse (no keyword, no dates).
- * Otherwise uses Met `/search` with `q`, optional `departmentId`, and optional `dateBegin`/`dateEnd`.
+ * Uses Met `/search` with `q`, optional `departmentId`, and optional `dateBegin`/`dateEnd`.
  * `/search` returns a bounded `objectIDs` list for those queries (API behavior).
  */
 export async function fetchGalleryObjectIdList(
   currentFilters: UrlGalleryFilters,
   signal: AbortSignal | undefined
 ): Promise<number[]> {
-  if (isDepartmentOnlyFilter(currentFilters)) {
-    return fetchObjectIdsByDepartment(currentFilters.departmentId!, signal);
-  }
-
   return fetchSearchObjectIds(
     buildMetSearchQueryString(currentFilters),
     signal

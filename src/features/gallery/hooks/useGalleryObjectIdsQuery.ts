@@ -4,7 +4,7 @@ import { galleryObjectIdsQueryKey } from '../lib/resolveGallerySearch';
 import type { UrlGalleryFilters } from '../types';
 
 /**
- * Met `/search` or `/objects` ID list for the current filters.
+ * Met `/search` ID list for the current filters.
  */
 export const useGalleryObjectIdsQuery = (currentFilters: UrlGalleryFilters) => {
   return useQuery<number[], Error>({

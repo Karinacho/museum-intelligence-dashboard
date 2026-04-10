@@ -32,8 +32,3 @@ export interface FiltersBarProps {
   setFilters: (next: UrlGalleryFilters) => void;
   resetToHighlights: () => void;
 }
-
-export interface FiltersFormProps extends FiltersBarProps {
-  departments: MetDepartment[] | undefined;
-  departmentsLoading: boolean;
-}
