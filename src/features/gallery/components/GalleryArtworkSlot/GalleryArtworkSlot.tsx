@@ -15,41 +15,36 @@ export const GalleryArtworkSlot = memo(function GalleryArtworkSlot({
   id,
   galleryLocation,
 }: GalleryArtworkSlotProps) {
-  const q = useQuery<MetObjectResponse, Error, PageQueryData>({
+  const singleArtworkQuery = useQuery<MetObjectResponse, Error, PageQueryData>({
     ...galleryArtworkQueryOptions(id),
   });
 
-  if (q.isError) {
+  if (singleArtworkQuery.isError) {
     return (
       <div>
-        <GalleryObjectErrorSlot id={id} query={q} />
+        <GalleryObjectErrorSlot id={id} query={singleArtworkQuery} />
       </div>
     );
   }
-  if (q.isPending) {
-    return (
-      <div>
-        <CardSkeleton />
-      </div>
-    );
-  }
-  if (!q.data?.artwork) {
+  if (singleArtworkQuery.isPending || !singleArtworkQuery.data?.artwork ) {
     return (
       <div>
         <CardSkeleton />
       </div>
     );
   }
-  const a = q.data.artwork;
+
+  const currentArtwork = singleArtworkQuery.data.artwork;
+  
   return (
     <div>
       <Card
-        to={`/artifact/${a.id}`}
+        to={`/artifact/${currentArtwork.id}`}
         state={{ from: galleryLocation }}
-        name={a.title}
-        artist={a.artist}
-        objectDate={a.dateLine}
-        imageSrc={a.imageUrl}
+        name={currentArtwork.title}
+        artist={currentArtwork.artist}
+        objectDate={currentArtwork.dateLine}
+        imageSrc={currentArtwork.imageUrl}
       />
     </div>
   );

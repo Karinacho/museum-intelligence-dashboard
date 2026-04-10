@@ -13,9 +13,9 @@ const PaginatedArtworkGrid = ({
   onPageChange,
   idsLoading = false,
 }: PaginatedArtworkGridProps) => {
-  const { galleryLocation, safePage, pageIds, hasNextPage, nextPageIds } =
+  const { galleryLocation, safePage, currentPageObjectIds, hasNextPage, nextPageObjectIds } =
     useGalleryPagination(objectIds, currentPage);
-  usePrefetchGalleryNextPage(nextPageIds, idsLoading);
+  usePrefetchGalleryNextPage(nextPageObjectIds, idsLoading);
 
   if (idsLoading) {
     return <GalleryArtworkGridLoading />;
@@ -24,7 +24,7 @@ const PaginatedArtworkGrid = ({
   return (
     <div className={styles.wrap}>
       <Grid>
-        {pageIds.map((id) => (
+        {currentPageObjectIds.map((id) => (
           <GalleryArtworkSlot
             key={id}
             id={id}

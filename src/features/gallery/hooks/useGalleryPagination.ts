@@ -14,14 +14,14 @@ export function useGalleryPagination(
   const totalPages = galleryTotalPages(objectIds.length, pageSize);
   const safePage = gallerySafePage(currentPage, totalPages);
 
-  const pageIds = useMemo(() => {
+  const currentPageObjectIds = useMemo(() => {
     const start = (safePage - 1) * pageSize;
     return objectIds.slice(start, start + pageSize);
   }, [objectIds, safePage, pageSize]);
 
   const hasNextPage = safePage < totalPages;
 
-  const nextPageIds = useMemo(() => {
+  const nextPageObjectIds = useMemo(() => {
     if (!hasNextPage) return [];
     const start = safePage * pageSize;
     return objectIds.slice(start, start + pageSize);
@@ -30,8 +30,8 @@ export function useGalleryPagination(
   return {
     galleryLocation,
     safePage,
-    pageIds,
+    currentPageObjectIds,
     hasNextPage,
-    nextPageIds,
+    nextPageObjectIds,
   };
 }
