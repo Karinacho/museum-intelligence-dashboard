@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { parseFiltersFromDraft } from '../lib/parseFiltersFromDraft';
 import type { UrlGalleryFilters } from '../types';
 
@@ -30,28 +30,6 @@ export function useGalleryFiltersDraft(
       })
     );
   }, [setFilters, departmentId, keyword, dateBeginInput, dateEndInput]);
-
-  useEffect(() => {
-    queueMicrotask(() => {
-      setDepartmentId(
-        currentFilters.departmentId != null
-          ? String(currentFilters.departmentId)
-          : ''
-      );
-      setKeyword(currentFilters.keyword ?? '');
-      setDateBeginInput(
-        currentFilters.dateBegin != null ? String(currentFilters.dateBegin) : ''
-      );
-      setDateEndInput(
-        currentFilters.dateEnd != null ? String(currentFilters.dateEnd) : ''
-      );
-    });
-  }, [
-    currentFilters.departmentId,
-    currentFilters.keyword,
-    currentFilters.dateBegin,
-    currentFilters.dateEnd,
-  ]);
 
   return {
     departmentId,

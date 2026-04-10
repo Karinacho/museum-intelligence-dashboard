@@ -27,7 +27,7 @@ export type UrlGalleryFilters = {
   dateEnd?: number;
 };
 
-export interface FiltersBarProps {
+export interface FiltersFormProps {
   currentFilters: UrlGalleryFilters;
   setFilters: (next: UrlGalleryFilters) => void;
   resetToHighlights: () => void;

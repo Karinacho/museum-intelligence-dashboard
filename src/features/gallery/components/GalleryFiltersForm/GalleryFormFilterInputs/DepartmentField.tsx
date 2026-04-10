@@ -1,5 +1,5 @@
 import type { MetDepartment } from '../../../types';
-import styles from './GalleryFiltersForm.module.css';
+import styles from '../../GalleryFiltersForm/GalleryFiltersForm.module.css';
 
 type DepartmentFieldProps = {
   value: string;

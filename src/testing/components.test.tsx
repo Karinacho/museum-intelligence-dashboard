@@ -11,7 +11,7 @@ import {
   RouterProvider,
 } from 'react-router-dom';
 import { metClient } from '@/lib/api/metMuseumClient';
-import GalleryFiltersBar from '@/features/gallery/components/GalleryFiltersBar/GalleryFiltersBar.tsx';
+import { GalleryFiltersForm } from '@/features/gallery/components';
 import RelatedWorksGrid from '@/features/artifact/components/RelatedWorksGrid/RelatedWorksGrid';
 import { metObjectResponseMinimal } from '@/testing/fixtures/metObject';
 import { useFilters } from '@/features/gallery/hooks';
@@ -44,7 +44,7 @@ describe('Assessment — component logic', () => {
     const GalleryFiltersBarWithUrl = () => {
       const { currentFilters, setFilters, resetToHighlights } = useFilters();
       return (
-        <GalleryFiltersBar
+        <GalleryFiltersForm
           currentFilters={currentFilters}
           setFilters={setFilters}
           resetToHighlights={resetToHighlights}

@@ -1,11 +1,10 @@
 import { useGalleryPageState } from '../hooks';
 import {
   GalleryHeading,
-  GalleryFiltersBar,
   PaginatedArtworkGrid,
   GalleryStatusMessages,
 } from '../components';
-
+import GalleryFiltersForm from '../components/GalleryFiltersForm/GalleryFiltersForm';
 const GalleryPage = () => {
   const {
     isHighlights,
@@ -26,7 +25,7 @@ const GalleryPage = () => {
   return (
     <>
       <GalleryHeading />
-      <GalleryFiltersBar
+      <GalleryFiltersForm
         currentFilters={currentFilters}
         setFilters={setFilters}
         resetToHighlights={resetToHighlights}
