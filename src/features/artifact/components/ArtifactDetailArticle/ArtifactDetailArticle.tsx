@@ -1,5 +1,5 @@
 import type { ArtworkDetail } from '@/lib/models/artwork';
-import type { RelatedWorksReadiness } from '../../lib/relatedWorks';
+import type { RelatedWorksStatus } from '../../lib/relatedWorks';
 import { ArtifactCreditSection } from '../ArtifactCreditSection/ArtifactCreditSection';
 import { ArtifactDetailFacts } from '../ArtifactDetailFacts/ArtifactDetailFacts';
 import { ArtifactDetailHeader } from '../ArtifactDetailHeader/ArtifactDetailHeader';
@@ -10,7 +10,7 @@ import styles from '../../pages/ArtifactPage.module.css';
 
 type ArtifactDetailArticleProps = {
   detail: ArtworkDetail;
-  readiness: RelatedWorksReadiness;
+  relatedWorksStatus: RelatedWorksStatus;
   departmentsLoading: boolean;
   relatedIds: number[];
   relatedIdsPending: boolean;
@@ -19,7 +19,7 @@ type ArtifactDetailArticleProps = {
 
 export function ArtifactDetailArticle({
   detail,
-  readiness,
+  relatedWorksStatus,
   departmentsLoading,
   relatedIds,
   relatedIdsPending,
@@ -39,7 +39,7 @@ export function ArtifactDetailArticle({
         <ArtifactCreditSection creditLine={detail.creditLine} />
         <ArtifactTagsSection tags={detail.tags} />
         <ArtifactRelatedWorksSection
-          readiness={readiness}
+          relatedWorksStatus={relatedWorksStatus}
           departmentsLoading={departmentsLoading}
           relatedIds={relatedIds}
           relatedIdsPending={relatedIdsPending}

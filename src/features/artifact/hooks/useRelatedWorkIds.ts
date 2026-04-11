@@ -21,16 +21,18 @@ export const useRelatedWorkIds = ({
   departments,
   departmentsLoading,
 }: Args) => {
-  const readiness = useMemo(
+
+  //whether related-works search is allowed yet, and if not, why 
+  const relatedWorksStatus = useMemo(
     () => getRelatedWorksReadiness(detail, departments, departmentsLoading),
     [detail, departments, departmentsLoading]
   );
 
-  const enabled = readiness.status === 'ok';
+  const enabled = relatedWorksStatus.status === 'ok';
   const departmentId =
-    readiness.status === 'ok' ? readiness.departmentId : null;
-  const dateBegin = readiness.status === 'ok' ? readiness.dateBegin : null;
-  const dateEnd = readiness.status === 'ok' ? readiness.dateEnd : null;
+    relatedWorksStatus.status === 'ok' ? relatedWorksStatus.departmentId : null;
+  const dateBegin = relatedWorksStatus.status === 'ok' ? relatedWorksStatus.relatedWorksDateBegin : null;
+  const dateEnd = relatedWorksStatus.status === 'ok' ? relatedWorksStatus.relatedWorksDateEnd : null;
 
   const query = useQuery({
     queryKey: [
@@ -60,11 +62,8 @@ export const useRelatedWorkIds = ({
       );
     },
     enabled,
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
     retry: 1,
   });
 
-  return { readiness, ...query };
+  return { relatedWorksStatus, ...query };
 };

@@ -12,7 +12,7 @@ export function DepartmentField({
   onChange,
   departments,
 }: DepartmentFieldProps) {
-  console.log(departments);
+
   return (
     <div className={styles.field}>
       <label className={styles.label} htmlFor="gallery-dept">

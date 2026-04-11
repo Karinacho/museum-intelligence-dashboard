@@ -1,12 +1,12 @@
 import RelatedWorksGrid from '../RelatedWorksGrid/RelatedWorksGrid';
 import {
   RELATED_PERIOD_RADIUS,
-  type RelatedWorksReadiness,
+  type RelatedWorksStatus,
 } from '../../lib/relatedWorks';
 import styles from '../../pages/ArtifactPage.module.css';
 
 type ArtifactRelatedWorksSectionProps = {
-  readiness: RelatedWorksReadiness;
+  relatedWorksStatus: RelatedWorksStatus;
   departmentsLoading: boolean;
   relatedIds: number[];
   relatedIdsPending: boolean;
@@ -14,7 +14,7 @@ type ArtifactRelatedWorksSectionProps = {
 };
 
 export function ArtifactRelatedWorksSection({
-  readiness,
+  relatedWorksStatus,
   departmentsLoading,
   relatedIds,
   relatedIdsPending,
@@ -38,31 +38,31 @@ export function ArtifactRelatedWorksSection({
         <p className={styles.muted}>Loading department directory…</p>
       ) : null}
 
-      {!departmentsLoading && readiness.status === 'no-department' ? (
+      {!departmentsLoading && relatedWorksStatus.status === 'no-department' ? (
         <p className={styles.muted}>
           This record’s department label does not match the museum directory, so
           same-department suggestions are not available.
         </p>
       ) : null}
 
-      {!departmentsLoading && readiness.status === 'no-date' ? (
+      {!departmentsLoading && relatedWorksStatus.status === 'no-date' ? (
         <p className={styles.muted}>
           There is not enough structured date information to define a period
           window for suggestions.
         </p>
       ) : null}
 
-      {readiness.status === 'ok' && relatedIdsError ? (
+      {relatedWorksStatus.status === 'ok' && relatedIdsError ? (
         <p className={styles.muted} role="alert">
           Related works could not be loaded.
         </p>
       ) : null}
 
-      {readiness.status === 'ok' && relatedIdsPending ? (
+      {relatedWorksStatus.status === 'ok' && relatedIdsPending ? (
         <p className={styles.muted}>Searching the collection…</p>
       ) : null}
 
-      {readiness.status === 'ok' &&
+      {relatedWorksStatus.status === 'ok' &&
       !relatedIdsPending &&
       !relatedIdsError &&
       relatedIds.length === 0 ? (
@@ -72,7 +72,7 @@ export function ArtifactRelatedWorksSection({
         </p>
       ) : null}
 
-      {readiness.status === 'ok' &&
+      {relatedWorksStatus.status === 'ok' &&
       relatedIds.length > 0 &&
       !relatedIdsPending ? (
         <RelatedWorksGrid ids={relatedIds} />

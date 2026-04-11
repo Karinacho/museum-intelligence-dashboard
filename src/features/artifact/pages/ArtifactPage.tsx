@@ -1,76 +1,15 @@
-import { useDepartments } from '@/features/gallery/hooks/useDepartments';
-import { ArtifactDetailArticle } from '../components/ArtifactDetailArticle/ArtifactDetailArticle';
-import { ArtifactDetailLoadError } from '../components/ArtifactDetailLoadError/ArtifactDetailLoadError';
-import { ArtifactPageNav } from '../components/ArtifactPageNav/ArtifactPageNav';
-import { useArtifactDetail } from '../hooks/useArtifactDetail';
+import { ArtifactInvalidObjectId } from '../components/ArtifactInvalidObjectId/ArtifactInvalidObjectId';
 import { useArtifactPageParams } from '../hooks/useArtifactPageParams';
-import { useRelatedWorkIds } from '../hooks/useRelatedWorkIds';
-import styles from './ArtifactPage.module.css';
+import { ArtifactDetailPage } from './ArtifactDetailPage/ArtifactDetailPage';
 
 const ArtifactPage = () => {
   const { objectId, validId, backTo } = useArtifactPageParams();
 
-  const {
-    data: detail,
-    isPending,
-    isError,
-    error,
-    refetch,
-  } = useArtifactDetail(validId ? objectId : undefined);
-
-  const { data: departments, isPending: departmentsLoading } = useDepartments();
-
-  const {
-    data: relatedIds = [],
-    isPending: relatedIdsPending,
-    isError: relatedIdsError,
-    readiness,
-  } = useRelatedWorkIds({
-    artifactId: validId ? objectId : 0,
-    detail: validId ? (detail ?? null) : null,
-    departments,
-    departmentsLoading,
-  });
-
   if (!validId) {
-    return (
-      <div className={styles.page}>
-        <ArtifactPageNav backTo={backTo} />
-        <p className={styles.alert} role="alert">
-          This URL does not contain a valid object id.
-        </p>
-      </div>
-    );
+    return <ArtifactInvalidObjectId backTo={backTo} />;
   }
 
-  return (
-    <div className={styles.page}>
-      <ArtifactPageNav backTo={backTo} />
-
-      {isPending && <p className={styles.message}>Loading artifact…</p>}
-
-      {isError && (
-        <ArtifactDetailLoadError error={error} onRetry={() => refetch()} />
-      )}
-
-      {!isPending && !isError && detail == null && (
-        <p className={styles.message}>
-          The museum could not supply a displayable record for this id.
-        </p>
-      )}
-
-      {detail ? (
-        <ArtifactDetailArticle
-          detail={detail}
-          readiness={readiness}
-          departmentsLoading={departmentsLoading}
-          relatedIds={relatedIds}
-          relatedIdsPending={relatedIdsPending}
-          relatedIdsError={relatedIdsError}
-        />
-      ) : null}
-    </div>
-  );
+  return <ArtifactDetailPage objectId={objectId} backTo={backTo} />;
 };
 
 export default ArtifactPage;

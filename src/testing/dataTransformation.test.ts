@@ -248,8 +248,8 @@ describe('Assessment — data transformation', () => {
         )
       ).toBe(1850);
       expect(relatedWorksDateBounds(1000)).toEqual({
-        dateBegin: 950,
-        dateEnd: 1050,
+        relatedWorksDateBegin: 950,
+        relatedWorksDateEnd: 1050,
       });
     });
 
@@ -267,8 +267,8 @@ describe('Assessment — data transformation', () => {
       ).toEqual({
         status: 'ok',
         departmentId: 11,
-        dateBegin: 1839,
-        dateEnd: 1939,
+        relatedWorksDateBegin: 1839,
+        relatedWorksDateEnd: 1939,
       });
       expect(
         getRelatedWorksReadiness(
