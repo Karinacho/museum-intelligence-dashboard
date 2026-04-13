@@ -1,24 +1,17 @@
 import { useSearchParams } from 'react-router-dom';
 import { useCallback, useMemo } from 'react';
 import {
-  type UrlGalleryFilters,
-  parseUrlGalleryFilters,
+  parseFiltersFromParams,
   isHighlightsMode,
+  parsePageFromParams,
 } from '../lib/resolveGallerySearch';
-
-const parsePageFromParams = (searchParams: URLSearchParams): number => {
-  const raw = searchParams.get('page');
-  if (raw === null || raw === '') return 1;
-  const n = Number.parseInt(raw, 10);
-  if (Number.isNaN(n) || n < 1) return 1;
-  return n;
-};
+import type { UrlGalleryFilters } from '../types';
 
 export const useFilters = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const urlState = useMemo(
-    () => parseUrlGalleryFilters(searchParams),
+  const currentFilters = useMemo(
+    () => parseFiltersFromParams(searchParams),
     [searchParams]
   );
 
@@ -27,14 +20,7 @@ export const useFilters = () => {
     [searchParams]
   );
 
-  /** Filters only (excludes `page`) — stable key for object-ID list queries. */
-  const objectListFilterKey = useMemo(() => {
-    const p = new URLSearchParams(searchParams);
-    p.delete('page');
-    return p.toString();
-  }, [searchParams]);
-
-  const isHighlights = isHighlightsMode(urlState);
+  const isHighlights = isHighlightsMode(currentFilters);
 
   const setFilters = useCallback(
     (next: UrlGalleryFilters) => {
@@ -76,9 +62,8 @@ export const useFilters = () => {
   }, [setSearchParams]);
 
   return {
-    urlState,
+    currentFilters,
     currentPage,
-    objectListFilterKey,
     isHighlights,
     setFilters,
     setPage,

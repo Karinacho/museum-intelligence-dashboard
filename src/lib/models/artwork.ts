@@ -209,9 +209,6 @@ export const transformArtwork = (
   };
 };
 
-/** @deprecated Use transformArtwork */
-export const toArtworkCard = transformArtwork;
-
 /**
  * Transform Met API response to ArtworkDetail
  */

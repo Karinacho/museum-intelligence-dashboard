@@ -7,6 +7,5 @@ export const useDepartments = () => {
     queryFn: fetchDepartments,
     staleTime: Number.POSITIVE_INFINITY,
     gcTime: Number.POSITIVE_INFINITY,
-    refetchOnWindowFocus: false,
   });
 };

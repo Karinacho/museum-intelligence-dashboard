@@ -8,8 +8,7 @@ const MAX_RETRIES_RATE_LIMIT = 4;
 
 export function isRateLimitApiError(error: unknown): boolean {
   return (
-    error instanceof ApiError &&
-    (error.status === 403 || error.status === 429)
+    error instanceof ApiError && (error.status === 403 || error.status === 429)
   );
 }
 
@@ -21,7 +20,10 @@ export function metObjectRetry(failureCount: number, error: unknown): boolean {
   return failureCount < MAX_RETRIES_DEFAULT;
 }
 
-export function metObjectRetryDelay(failureIndex: number, error: unknown): number {
+export function metObjectRetryDelay(
+  failureIndex: number,
+  error: unknown
+): number {
   if (isRateLimitApiError(error)) {
     return Math.min(20_000, 3_000 * 2 ** failureIndex);
   }

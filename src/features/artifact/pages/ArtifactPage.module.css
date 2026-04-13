@@ -158,6 +158,10 @@
   color: var(--ink);
 }
 
+.tagsSection {
+  padding-top: 0.25rem;
+}
+
 .creditSection {
   padding: 1.25rem;
   border-radius: var(--radius);

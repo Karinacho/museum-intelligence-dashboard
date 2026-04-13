@@ -11,9 +11,10 @@ import {
   RouterProvider,
 } from 'react-router-dom';
 import { metClient } from '@/lib/api/metMuseumClient';
-import GalleryFiltersBar from '@/features/gallery/components/GalleryFiltersBar/GalleryFiltersBar.tsx';
+import { GalleryFiltersForm } from '@/features/gallery/components';
 import RelatedWorksGrid from '@/features/artifact/components/RelatedWorksGrid/RelatedWorksGrid';
 import { metObjectResponseMinimal } from '@/testing/fixtures/metObject';
+import { useFilters } from '@/features/gallery/hooks';
 
 vi.mock('@/features/gallery/hooks/useDepartments', () => ({
   useDepartments: () => ({
@@ -40,10 +41,21 @@ describe('Assessment — component logic', () => {
       );
     };
 
+    const GalleryFiltersBarWithUrl = () => {
+      const { currentFilters, setFilters, resetToHighlights } = useFilters();
+      return (
+        <GalleryFiltersForm
+          currentFilters={currentFilters}
+          setFilters={setFilters}
+          resetToHighlights={resetToHighlights}
+        />
+      );
+    };
+
     it('applies department and keyword to the URL on search', async () => {
       const user = userEvent.setup();
       const router = createMemoryRouter(
-        [{ path: '/', element: <GalleryFiltersBar /> }],
+        [{ path: '/', element: <GalleryFiltersBarWithUrl /> }],
         { initialEntries: ['/'] }
       );
 
@@ -51,7 +63,9 @@ describe('Assessment — component logic', () => {
 
       await user.selectOptions(screen.getByLabelText(/department/i), '10');
       await user.type(screen.getByLabelText(/keyword/i), 'scarab');
-      await user.click(screen.getByRole('button', { name: /search collection/i }));
+      await user.click(
+        screen.getByRole('button', { name: /search collection/i })
+      );
 
       const search = new URLSearchParams(router.state.location.search);
       expect(search.get('dept')).toBe('10');
@@ -61,23 +75,23 @@ describe('Assessment — component logic', () => {
     it('resets URL to highlights when requested', async () => {
       const user = userEvent.setup();
       const router = createMemoryRouter(
-        [{ path: '/', element: <GalleryFiltersBar /> }],
+        [{ path: '/', element: <GalleryFiltersBarWithUrl /> }],
         { initialEntries: ['/?keyword=old'] }
       );
 
       renderWithProviders(router);
-      await user.click(screen.getByRole('button', { name: /show highlights/i }));
+      await user.click(
+        screen.getByRole('button', { name: /show highlights/i })
+      );
 
       expect(router.state.location.search).toBe('');
     });
 
     it('restores form controls from URL query params on mount', () => {
       const router = createMemoryRouter(
-        [{ path: '/', element: <GalleryFiltersBar /> }],
+        [{ path: '/', element: <GalleryFiltersBarWithUrl /> }],
         {
-          initialEntries: [
-            '/?dept=11&keyword=statue',
-          ],
+          initialEntries: ['/?dept=11&keyword=statue'],
         }
       );
 
@@ -90,7 +104,7 @@ describe('Assessment — component logic', () => {
     it('applies date range to the URL on search', async () => {
       const user = userEvent.setup();
       const router = createMemoryRouter(
-        [{ path: '/', element: <GalleryFiltersBar /> }],
+        [{ path: '/', element: <GalleryFiltersBarWithUrl /> }],
         { initialEntries: ['/'] }
       );
 
@@ -98,7 +112,9 @@ describe('Assessment — component logic', () => {
 
       await user.type(screen.getByLabelText(/^from year/i), '1800');
       await user.type(screen.getByLabelText(/^to year/i), '1900');
-      await user.click(screen.getByRole('button', { name: /search collection/i }));
+      await user.click(
+        screen.getByRole('button', { name: /search collection/i })
+      );
 
       const search = new URLSearchParams(router.state.location.search);
       expect(search.get('dateBegin')).toBe('1800');
@@ -109,7 +125,7 @@ describe('Assessment — component logic', () => {
     it('does not write keyword to the URL until Search collection', async () => {
       const user = userEvent.setup();
       const router = createMemoryRouter(
-        [{ path: '/', element: <GalleryFiltersBar /> }],
+        [{ path: '/', element: <GalleryFiltersBarWithUrl /> }],
         { initialEntries: ['/'] }
       );
 
@@ -125,7 +141,9 @@ describe('Assessment — component logic', () => {
         new URLSearchParams(router.state.location.search).get('keyword')
       ).toBeNull();
 
-      await user.click(screen.getByRole('button', { name: /search collection/i }));
+      await user.click(
+        screen.getByRole('button', { name: /search collection/i })
+      );
       expect(
         new URLSearchParams(router.state.location.search).get('keyword')
       ).toBe('ab');

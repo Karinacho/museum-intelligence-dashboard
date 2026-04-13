@@ -1,8 +1,8 @@
-import { useMemo, useEffect } from 'react';
-import type { UrlGalleryFilters } from '../lib/resolveGallerySearch';
+import { useEffect } from 'react';
 import { useFilters } from './useFilters';
-import { useGalleryObjectIds } from './useGalleryObjectIds';
-import { GALLERY_PAGE_SIZE } from '../components/PaginatedArtworkGrid/PaginatedArtworkGrid.tsx';
+import { useGalleryObjectIdsQuery } from './useGalleryObjectIdsQuery.ts';
+import { galleryTotalPages } from '../lib/galleryPagination';
+import type { UrlGalleryFilters } from '../types';
 
 export type GalleryPageState = {
   isHighlights: boolean;
@@ -13,19 +13,30 @@ export type GalleryPageState = {
   isError: boolean;
   error: Error | null;
   isFetching: boolean;
+  setFilters: (filters: UrlGalleryFilters) => void;
+  resetToHighlights: () => void;
+  currentFilters: UrlGalleryFilters;
 };
 
-export const useGalleryPageState = (
-  urlState: UrlGalleryFilters
-): GalleryPageState => {
-  const { isHighlights, currentPage, setPage } = useFilters();
-  const { data: objectIds = [], isPending, isError, error, isFetching } =
-    useGalleryObjectIds(urlState);
+export const useGalleryPageState = (): GalleryPageState => {
+  const {
+    isHighlights,
+    currentPage,
+    setPage,
+    currentFilters,
+    setFilters,
+    resetToHighlights,
+  } = useFilters();
 
-  const totalPages = useMemo(
-    () => Math.max(1, Math.ceil(objectIds.length / GALLERY_PAGE_SIZE)),
-    [objectIds.length]
-  );
+  const {
+    data: objectIds = [],
+    isPending,
+    isError,
+    error,
+    isFetching,
+  } = useGalleryObjectIdsQuery(currentFilters);
+
+  const totalPages = galleryTotalPages(objectIds.length);
 
   useEffect(() => {
     if (objectIds.length > 0 && currentPage > totalPages) {
@@ -46,5 +57,8 @@ export const useGalleryPageState = (
     isError,
     error: error ?? null,
     isFetching,
+    setFilters,
+    resetToHighlights,
+    currentFilters,
   };
 };

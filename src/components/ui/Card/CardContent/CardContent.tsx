@@ -11,7 +11,7 @@ const CardContent = ({ tags, name, artist, objectDate }: CardContentProps) => {
   return (
     <div className={styles.content}>
       <h3 className={styles.name}>{name ? name : 'Untitled'}</h3>
-      <p className={styles.artist}>{artist ? artist : 'Unknown artist'}</p> 
+      <p className={styles.artist}>{artist ? artist : 'Unknown artist'}</p>
       <p className={styles.date}>{objectDate ? objectDate : 'Unknown date'}</p>
       {tags && tags.length > 0 && (
         <div className={styles.tags}>

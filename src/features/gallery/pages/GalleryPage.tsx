@@ -1,22 +1,35 @@
-import { useFilters } from '../hooks/useFilters';
-import { useGalleryPageState } from '../hooks/useGalleryPageState';
-import GalleryFiltersBar from '../components/GalleryFiltersBar/GalleryFiltersBar.tsx';
-import PaginatedArtworkGrid from '../components/PaginatedArtworkGrid/PaginatedArtworkGrid.tsx';
-import { GalleryStatusMessages } from '../components/GalleryStatusMessages/GalleryStatusMessages';
-import { GalleryHeading } from '../components';
-import styles from './GalleryPage.module.css';
-
+import { useGalleryPageState } from '../hooks';
+import {
+  GalleryHeading,
+  PaginatedArtworkGrid,
+  GalleryStatusMessages,
+} from '../components';
+import GalleryFiltersForm from '../components/GalleryFiltersForm/GalleryFiltersForm';
 const GalleryPage = () => {
-  const { urlState } = useFilters();
-  const { isHighlights, currentPage, setPage, objectIds, isPending, isError, error, isFetching } =
-    useGalleryPageState(urlState);
+  const {
+    isHighlights,
+    currentPage,
+    setPage,
+    objectIds,
+    isPending,
+    isError,
+    error,
+    isFetching,
+    setFilters,
+    resetToHighlights,
+    currentFilters,
+  } = useGalleryPageState();
 
   const showGrid = !isError && (objectIds.length > 0 || isPending);
 
   return (
-    <div className={styles.page}>
+    <>
       <GalleryHeading />
-      <GalleryFiltersBar />
+      <GalleryFiltersForm
+        currentFilters={currentFilters}
+        setFilters={setFilters}
+        resetToHighlights={resetToHighlights}
+      />
       <GalleryStatusMessages
         isError={isError}
         error={error}
@@ -28,12 +41,12 @@ const GalleryPage = () => {
       {showGrid && (
         <PaginatedArtworkGrid
           objectIds={objectIds}
-          page={currentPage}
+          currentPage={currentPage}
           onPageChange={setPage}
           idsLoading={isPending && !objectIds.length}
         />
       )}
-    </div>
+    </>
   );
 };
 

@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import type { ArtworkDetail } from '@/lib/models/artwork';
+import type { RelatedWorksStatus } from '@/features/artifact/lib/relatedWorks';
 import ArtifactPage from '@/features/artifact/pages/ArtifactPage';
 
 type ArtifactHookState = {
@@ -17,6 +18,7 @@ type RelatedIdsHookState = {
   data: number[];
   isPending: boolean;
   isError: boolean;
+  relatedWorksStatus: RelatedWorksStatus;
 };
 
 let artifactHookState: ArtifactHookState;
@@ -25,11 +27,14 @@ let departmentsLoading = false;
 
 const refetchSpy = vi.fn();
 
-vi.mock('@/features/artifact/components/RelatedWorksGrid/RelatedWorksGrid', () => ({
-  default: ({ ids }: { ids: number[] }) => (
-    <div data-testid="related-grid">{ids.join(',')}</div>
-  ),
-}));
+vi.mock(
+  '@/features/artifact/components/RelatedWorksGrid/RelatedWorksGrid',
+  () => ({
+    default: ({ ids }: { ids: number[] }) => (
+      <div data-testid="related-grid">{ids.join(',')}</div>
+    ),
+  })
+);
 
 vi.mock('@/features/artifact/hooks/useArtifactDetail', () => ({
   useArtifactDetail: () => artifactHookState,
@@ -92,12 +97,24 @@ describe('Assessment — artifact detail page', () => {
       error: null,
       refetch: refetchSpy,
     };
-    relatedIdsHookState = { data: [201, 202], isPending: false, isError: false };
+    relatedIdsHookState = {
+      data: [201, 202],
+      isPending: false,
+      isError: false,
+      relatedWorksStatus: {
+        status: 'ok',
+        departmentId: 11,
+        relatedWorksDateBegin: 1888,
+        relatedWorksDateEnd: 1892,
+      },
+    };
     departmentsLoading = false;
 
     renderArtifactRoute();
 
-    expect(screen.getByRole('heading', { name: 'Study of Light' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Study of Light' })
+    ).toBeInTheDocument();
     expect(screen.getByText('Accession number')).toBeInTheDocument();
     expect(screen.getByText('A.190.1')).toBeInTheDocument();
     expect(screen.getByText('Oil on canvas')).toBeInTheDocument();
@@ -123,14 +140,21 @@ describe('Assessment — artifact detail page', () => {
       error: null,
       refetch: refetchSpy,
     };
-    relatedIdsHookState = { data: [], isPending: false, isError: false };
+    relatedIdsHookState = {
+      data: [],
+      isPending: false,
+      isError: false,
+      relatedWorksStatus: { status: 'no-date' },
+    };
     departmentsLoading = false;
 
     renderArtifactRoute();
 
     expect(screen.getByLabelText('No image available')).toBeInTheDocument();
     expect(
-      screen.getByText('No tags are listed for this object in the collection API.')
+      screen.getByText(
+        'No tags are listed for this object in the collection API.'
+      )
     ).toBeInTheDocument();
     expect(
       screen.getByText(

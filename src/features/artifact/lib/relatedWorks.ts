@@ -1,5 +1,5 @@
 import type { ArtworkDetail, MetObjectResponse } from '@/lib/models/artwork';
-import type { MetDepartment } from '@/features/gallery/api/galleryApi';
+import type { MetDepartment } from '@/features/gallery/types';
 import {
   fetchObjectById,
   fetchObjectIdsByDepartment,
@@ -27,9 +27,8 @@ export function resolveDepartmentIdByName(
 ): number | undefined {
   if (!departments?.length) return undefined;
   const t = departmentName.trim().toLowerCase();
-  return departments.find(
-    (d) => d.displayName.trim().toLowerCase() === t
-  )?.departmentId;
+  return departments.find((d) => d.displayName.trim().toLowerCase() === t)
+    ?.departmentId;
 }
 
 const isUsableSignedYear = (n: number | null | undefined): n is number =>
@@ -38,28 +37,30 @@ const isUsableSignedYear = (n: number | null | undefined): n is number =>
 /**
  * Picks a single signed Met year (negative = BCE) for period matching.
  */
-export function signedCenterYearFromArtifact(detail: ArtworkDetail): number | null {
-  const b = detail.objectBeginDate;
-  const e = detail.objectEndDate;
-  if (isUsableSignedYear(b) && isUsableSignedYear(e)) {
-    return Math.round((b + e) / 2);
+export function signedCenterYearFromArtifact(
+  detail: ArtworkDetail
+): number | null {
+  const beginDate = detail.objectBeginDate;
+  const endDate = detail.objectEndDate;
+  if (isUsableSignedYear(beginDate) && isUsableSignedYear(endDate)) {
+    return Math.round((beginDate + endDate) / 2);
   }
-  if (isUsableSignedYear(b)) return b;
-  if (isUsableSignedYear(e)) return e;
+  if (isUsableSignedYear(beginDate)) return beginDate;
+  if (isUsableSignedYear(endDate)) return endDate;
   if (detail.structuredDate) {
-    const y = detail.structuredDate.year;
-    return detail.structuredDate.era === 'BCE' ? -y : y;
+    const year = detail.structuredDate.year;
+    return detail.structuredDate.era === 'BCE' ? -year : year;
   }
   return null;
 }
 
 export function relatedWorksDateBounds(centerSigned: number): {
-  dateBegin: number;
-  dateEnd: number;
+  relatedWorksDateBegin: number;
+  relatedWorksDateEnd: number;
 } {
   return {
-    dateBegin: centerSigned - RELATED_PERIOD_RADIUS,
-    dateEnd: centerSigned + RELATED_PERIOD_RADIUS,
+    relatedWorksDateBegin: centerSigned - RELATED_PERIOD_RADIUS,
+    relatedWorksDateEnd: centerSigned + RELATED_PERIOD_RADIUS,
   };
 }
 
@@ -149,7 +150,12 @@ export async function fetchRelatedWorkIdsStrict(
   limit: number,
   signal: AbortSignal | undefined
 ): Promise<number[]> {
-  const qs = buildRelatedWorksSearchQueryString(departmentId, dateBegin, dateEnd);
+  const qs = buildRelatedWorksSearchQueryString(
+    departmentId,
+    dateBegin,
+    dateEnd
+  );
+
   const fromSearch = await fetchSearchObjectIds(qs, signal);
   if (fromSearch.length > 0) {
     return takeRelatedIdsExcluding(fromSearch, excludeId, limit);
@@ -202,7 +208,7 @@ export function takeRelatedIdsExcluding(
   return out;
 }
 
-export type RelatedWorksReadiness =
+export type RelatedWorksStatus =
   | { status: 'no-detail' }
   | { status: 'departments-loading' }
   | { status: 'no-department' }
@@ -210,21 +216,24 @@ export type RelatedWorksReadiness =
   | {
       status: 'ok';
       departmentId: number;
-      dateBegin: number;
-      dateEnd: number;
+      relatedWorksDateBegin: number;
+      relatedWorksDateEnd: number;
     };
 
 export function getRelatedWorksReadiness(
   detail: ArtworkDetail | null | undefined,
   departments: MetDepartment[] | undefined,
   departmentsLoading: boolean
-): RelatedWorksReadiness {
+): RelatedWorksStatus {
   if (!detail) return { status: 'no-detail' };
   if (departmentsLoading) return { status: 'departments-loading' };
-  const center = signedCenterYearFromArtifact(detail);
-  if (center == null) return { status: 'no-date' };
-  const { dateBegin, dateEnd } = relatedWorksDateBounds(center);
-  const departmentId = resolveDepartmentIdByName(detail.department, departments);
+  const anchorYear = signedCenterYearFromArtifact(detail);
+  if (anchorYear == null) return { status: 'no-date' };
+  const { relatedWorksDateBegin, relatedWorksDateEnd } = relatedWorksDateBounds(anchorYear);
+  const departmentId = resolveDepartmentIdByName(
+    detail.department,
+    departments
+  );
   if (departmentId == null) return { status: 'no-department' };
-  return { status: 'ok', departmentId, dateBegin, dateEnd };
+  return { status: 'ok', departmentId, relatedWorksDateBegin, relatedWorksDateEnd };
 }

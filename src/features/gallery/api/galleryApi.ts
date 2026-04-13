@@ -1,34 +1,18 @@
 import { metClient } from '@/lib/api/metMuseumClient';
-import {
-  buildMetSearchQueryString,
-  usesDepartmentObjectList,
-  type UrlGalleryFilters,
-} from '@/features/gallery/lib/resolveGallerySearch';
+import { buildMetSearchQueryString } from '@/features/gallery/lib/resolveGallerySearch';
 import {
   type MetObjectsResponse,
   type MetObjectResponse,
   type ArtworkCard,
   transformArtwork,
 } from '@/lib/models/artwork';
-
-export type MetDepartment = {
-  departmentId: number;
-  displayName: string;
-};
+import type { UrlGalleryFilters, MetDepartment } from '../types';
 
 export const fetchDepartments = async (): Promise<MetDepartment[]> => {
   const response = await metClient.get<{ departments: MetDepartment[] }>(
     '/departments'
   );
   return response.departments ?? [];
-};
-
-/**
- * Full collection ID list (~470k) — avoid for gallery; kept for legacy hooks.
- */
-export const fetchAllObjectIds = async (): Promise<number[]> => {
-  const response = await metClient.get<MetObjectsResponse>('/objects');
-  return response.objectIDs ?? [];
 };
 
 export const fetchObjectIdsByDepartment = async (
@@ -55,20 +39,17 @@ export const fetchSearchObjectIds = async (
 
 /**
  * Resolves gallery object IDs for the current URL filters.
- * Uses `/objects?departmentIds=` only for plain department browse (no keyword, no dates).
- * Otherwise uses Met `/search` with `q`, optional `departmentId`, and optional `dateBegin`/`dateEnd`.
+ * Uses Met `/search` with `q`, optional `departmentId`, and optional `dateBegin`/`dateEnd`.
  * `/search` returns a bounded `objectIDs` list for those queries (API behavior).
  */
 export async function fetchGalleryObjectIdList(
-  state: UrlGalleryFilters,
+  currentFilters: UrlGalleryFilters,
   signal: AbortSignal | undefined
 ): Promise<number[]> {
- 
-  if (usesDepartmentObjectList(state)) {
-    return fetchObjectIdsByDepartment(state.departmentId!, signal);
-  }
-
-  return fetchSearchObjectIds(buildMetSearchQueryString(state), signal);
+  return fetchSearchObjectIds(
+    buildMetSearchQueryString(currentFilters),
+    signal
+  );
 }
 
 export const fetchObjectById = async (

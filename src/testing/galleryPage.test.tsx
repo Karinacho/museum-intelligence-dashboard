@@ -7,12 +7,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import GalleryPage from '@/features/gallery/pages/GalleryPage';
 
-vi.mock(
-  '@/features/gallery/components/GalleryFiltersBar/GalleryFiltersBar.tsx',
-  () => ({
-    default: () => <div data-testid="gallery-filters-bar">filters</div>,
-  })
-);
+vi.mock('@/features/gallery/components/GalleryFiltersForm/GalleryFiltersForm', () => ({
+  default: () => <div data-testid="gallery-filters-bar">filters</div>,
+}));
 
 vi.mock(
   '@/features/gallery/components/PaginatedArtworkGrid/PaginatedArtworkGrid.tsx',
@@ -43,6 +40,9 @@ vi.mock('@/features/gallery/hooks/useGalleryPageState', () => ({
     isError: false,
     error: null,
     isFetching: false,
+    setFilters: vi.fn(),
+    resetToHighlights: vi.fn(),
+    currentFilters: { departmentId: 10 },
   }),
 }));
 
